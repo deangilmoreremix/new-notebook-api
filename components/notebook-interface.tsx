@@ -457,7 +457,7 @@ export function NotebookInterface() {
       <div className="flex h-screen">
         {/* Sources Sidebar */}
         <div
-          className="w-[400px] h-full pt-14 bg-[#1A1B1E] border-r border-[#2B2D31] flex flex-col"
+          className="w-1/3 h-full pt-14 bg-[#1A1B1E] border-r border-[#2B2D31] flex flex-col"
           data-walkthrough="sources"
         >
           <div className="flex items-center justify-between p-4">
@@ -547,7 +547,7 @@ export function NotebookInterface() {
 
         {/* Main Content */}
         <div
-          className="w-[500px] pt-14 flex flex-col"
+          className="w-1/3 pt-14 flex flex-col"
           data-walkthrough="chat"
         >
           <Suspense fallback={<div className="flex-1 flex items-center justify-center">
@@ -565,7 +565,7 @@ export function NotebookInterface() {
 
         {/* Studio Sidebar */}
         <div
-          className="w-[400px] h-full pt-14 bg-[#1A1B1E] border-l border-[#2B2D31]"
+          className="w-1/3 h-full pt-14 bg-[#1A1B1E] border-l border-[#2B2D31]"
           data-walkthrough="studio"
         >
           <div className="p-4">
