@@ -55,7 +55,7 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
       }
       
       // Validate file type
-      const validTypes = ['application/pdf', 'text/plain'];
+      const validTypes = API_CONSTANTS.VALID_FILE_TYPES;
       if (!validTypes.includes(file.type)) {
         toast({
           title: "Invalid file type",
@@ -76,7 +76,9 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
     accept: {
       'application/pdf': ['.pdf'],
       'text/plain': ['.txt'],
-      'text/markdown': ['.md']
+      'text/markdown': ['.md'],
+      'audio/mpeg': ['.mp3'],
+      'audio/wav': ['.wav']
     },
     maxSize: API_CONSTANTS.MAX_FILE_SIZE
   });
@@ -97,7 +99,11 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
           content = await new Promise<string>((resolve, reject) => {
             reader.onload = () => resolve(reader.result as string);
             reader.onerror = reject;
-            reader.readAsText(file);
+            if (file.type.startsWith('audio/')) {
+              reader.readAsDataURL(file);
+            } else {
+              reader.readAsText(file);
+            }
           });
           type = file.type;
           title = file.name;

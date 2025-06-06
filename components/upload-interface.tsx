@@ -23,7 +23,7 @@ export function UploadInterface({ onClose, onSourcesUpdate }: UploadInterfacePro
       setError('File too large');
       return;
     }
-    const validTypes = ['application/pdf', 'text/plain', 'text/markdown'];
+    const validTypes = API_CONSTANTS.VALID_FILE_TYPES;
     if (!validTypes.includes(file.type)) {
       setError('Invalid file type');
       return;
