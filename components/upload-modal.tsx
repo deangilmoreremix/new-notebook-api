@@ -81,7 +81,7 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
     maxSize: API_CONSTANTS.MAX_FILE_SIZE
   });
 
-  const handleUpload = async () => {
+   const handleUpload = async () => {
     setUploading(true);
     setProgress(0);
     let content: string;
@@ -109,7 +109,7 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
             toast({
               title: "Invalid URL",
               description: "URL must start with http:// or https://",
-              variant: "destructive"
+              variant: "destructive",
             });
             return;
           }
@@ -127,7 +127,7 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
             toast({
               title: "Text too long",
               description: "Maximum 50,000 characters allowed",
-              variant: "destructive"
+              variant: "destructive",
             });
             return;
           }
@@ -147,14 +147,36 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
         content,
         type,
         selected: false,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
       // Generate overview using Gemini
       setProgress(30);
       try {
-        const overview = await geminiService.analyzeContent(content.slice(0, 30000)); // Limit content length
+        // Use generateSummary for summary
+        const summaryResult = await geminiService.generateSummary(content.slice(0, 30000));
+        const summary = summaryResult.text || JSON.stringify(summaryResult);
+
+        // Generate suggested questions
+        const questionsResult = await geminiService.generateQuestions(content.slice(0, 30000), {
+          count: 5,
+          type: 'open-ended',
+        });
+        const suggestedQuestions = Array.isArray(questionsResult)
+          ? questionsResult.map(q => q.question)
+          : [];
+
+        // Extract topics using extractKeywords
+        const keywordsResult = await geminiService.extractKeywords(content.slice(0, 30000), {
+          maxKeywords: 10,
+        });
+        const topics = Array.isArray(keywordsResult.keywords)
+          ? keywordsResult.keywords.map((k: { term: string }) => k.term)
+          : [];
+
         setProgress(60);
+
+        // Generate citations
         const citations = await geminiService.generateCitations(content);
         setProgress(90);
 
@@ -162,27 +184,32 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
         const sourceWithMetadata = {
           ...newSource,
           metadata: {
-            overview: overview.summary,
-            suggestedQuestions: overview.suggestedQuestions || [],
-            topics: overview.topics,
-            citations: citations || [],
-            readingTime: Math.ceil(content.split(' ').length / 200) // Rough estimate: 200 words per minute
+            summary: summary,
+            rawContent: content
           }
         };
 
+        // Store additional metadata separately
+        storageService.saveSourceMetadata(sourceWithMetadata.id, {
+          suggestedQuestions,
+          topics,
+          citations: Array.isArray(citations) ? citations : [],
+          readingTime: Math.ceil(content.split(' ').length / 200)
+        });
+
         // Add overview message to chat
         const overviewMessage = {
-          text: overview.summary,
+          text: summary,
           sender: 'assistant' as const,
           isOverview: true,
           error: false,
           source: {
             title: sourceWithMetadata.title,
             type: sourceWithMetadata.type,
-            suggestedQuestions: overview.suggestedQuestions,
-            citations: citations || [],
-            error: false
-          }
+            suggestedQuestions,
+            citations: Array.isArray(citations) ? citations : [],
+            error: false,
+          },
         };
 
         // Save source with metadata
@@ -196,28 +223,37 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
         if (onUploadComplete) {
           onUploadComplete({
             ...sourceWithMetadata,
-            overviewMessage
+            overviewMessage,
           });
         }
 
         toast({
           title: "Upload complete",
-          description: "Your content has been uploaded and analyzed successfully"
+          description: "Your content has been uploaded and analyzed successfully",
         });
 
         onClose();
       } catch (error) {
         console.error('Failed to generate overview:', error);
-        
+
         // Save source even if analysis fails
         const sources = storageService.loadSources();
-        storageService.saveSources([...sources, {
-          ...newSource,
-          metadata: {
-            error: true,
-            errorMessage: error instanceof Error ? error.message : 'Analysis failed'
-          }
-        }]);
+        storageService.saveSources([
+          ...sources,
+          {
+            ...newSource,
+            metadata: {
+              summary: '',
+              rawContent: content
+            }
+          },
+        ]);
+
+        // Store error information separately
+        storageService.saveSourceMetadata(newSource.id, {
+          error: true,
+          errorMessage: error instanceof Error ? error.message : 'Analysis failed'
+        });
 
         // Add error message to chat
         const errorMessage = {
@@ -228,27 +264,27 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
           source: {
             title: newSource.title,
             type: newSource.type,
-            error: true
-          }
+            error: true,
+          },
         };
 
         toast({
           title: "Analysis failed",
-          description: error instanceof Error 
-            ? error.message 
+          description: error instanceof Error
+            ? error.message
             : "Content was uploaded but analysis failed. You can try analyzing it again later.",
           variant: "destructive",
-          duration: 5000
+          duration: 5000,
         });
-        
+
         // Still notify parent of upload
         if (onUploadComplete) {
           onUploadComplete({
             ...newSource,
-            overviewMessage: errorMessage
+            overviewMessage: errorMessage,
           });
         }
-        
+
         onClose();
       }
     } catch (error) {
@@ -256,7 +292,7 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
       toast({
         title: "Upload failed",
         description: "An error occurred while uploading your content",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setUploading(false);

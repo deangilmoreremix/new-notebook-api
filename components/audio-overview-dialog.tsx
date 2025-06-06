@@ -233,7 +233,7 @@ export function AudioOverviewDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg font-semibold text-white">
             <Mic className="w-5 h-5" />
-            Audio Overview1
+            Audio Overview
           </DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
