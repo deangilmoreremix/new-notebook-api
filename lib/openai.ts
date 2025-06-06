@@ -1,8 +1,11 @@
 import OpenAI from 'openai';
 import { OPENAI_DEFAULTS } from './constants';
 
+// Load the API key from the environment so credentials aren't
+// hard-coded in the repository. During local development the
+// variable can be defined in `.env.local`.
 const openai = new OpenAI({
-  apiKey: 'sk-proj-DAbaU4I795ShnNh5wOqnT3BlbkFJWZQdobaGxJDjnwAX94aB',
+  apiKey: process.env.OPENAI_API_KEY || '',
   dangerouslyAllowBrowser: true // Only for demo purposes
 });
 

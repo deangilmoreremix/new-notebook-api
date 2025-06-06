@@ -27,7 +27,7 @@ export async function POST(req: Request) {
     };
 
     // Call the external API
-    const response = await fetch(`${API_URL}/Content/CloneVoice`, {
+    const response = await fetch(`${API_URL}/content/clonevoice`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${API_KEY}`,

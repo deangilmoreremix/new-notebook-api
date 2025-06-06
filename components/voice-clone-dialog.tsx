@@ -15,6 +15,7 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/components/ui/use-toast';
 import { Mic, Upload, AudioWaveform as Waveform, Loader2 } from 'lucide-react';
 import { autoContentApi } from '@/lib/api';
+import { API_CONSTANTS } from '@/lib/api/constants';
 
 interface Voice {
   id: string;
@@ -48,10 +49,10 @@ export function VoiceCloneDialog({
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      if (file.size > API_CONSTANTS.MAX_FILE_SIZE) {
         toast({
           title: "File too large",
-          description: "Audio file must be under 10MB",
+          description: "Audio file must be under 50MB",
           variant: "destructive"
         });
         return;

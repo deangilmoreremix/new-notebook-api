@@ -8,31 +8,31 @@ import { ProcessRequest, ProcessResponse, ContentStatus } from './types/api';
 
 // API Endpoints
 const ENDPOINTS = {
-  create: '/Content/Create',
-  status: '/Content/Status',
-  usage: '/Content/Usage',
-  list: '/Content/List',
-  webhook: '/Content/Webhook',
+  create: '/content/create',
+  status: '/content/status',
+  usage: '/content/usage',
+  list: '/content/list',
+  webhook: '/content/webhook',
   studio: {
-    analyze: '/Studio/Analyze',
-    generate: '/Studio/Generate',
-    compare: '/Studio/Compare',
-    export: '/Studio/Export',
+    analyze: '/studio/analyze',
+    generate: '/studio/generate',
+    compare: '/studio/compare',
+    export: '/studio/export',
     tools: {
-      summarize: '/Studio/Tools/Summarize',
-      highlight: '/Studio/Tools/Highlight',
-      annotate: '/Studio/Tools/Annotate',
-      search: '/Studio/Tools/Search'
+      summarize: '/studio/tools/summarize',
+      highlight: '/studio/tools/highlight',
+      annotate: '/studio/tools/annotate',
+      search: '/studio/tools/search'
     },
     collaboration: {
-      share: '/Studio/Collaboration/Share',
-      comments: '/Studio/Collaboration/Comments',
-      versions: '/Studio/Collaboration/Versions'
+      share: '/studio/collaboration/share',
+      comments: '/studio/collaboration/comments',
+      versions: '/studio/collaboration/versions'
     },
     export: {
-      pdf: '/Studio/Export/PDF',
-      docx: '/Studio/Export/DOCX',
-      markdown: '/Studio/Export/Markdown'
+      pdf: '/studio/export/pdf',
+      docx: '/studio/export/docx',
+      markdown: '/studio/export/markdown'
     }
   }
 } as const;
@@ -153,7 +153,7 @@ export const autoContentApi = {
     customization?: any;
   } = {}) {
     try {
-      const url = `${AUTOCONTENT_API_URL}/Content/Create`;
+      const url = `${AUTOCONTENT_API_URL}/content/create`;
       const headers = {
         'Authorization': `Bearer ${API_KEY}`,
         'Content-Type': 'application/json'
@@ -285,7 +285,7 @@ export const autoContentApi = {
         throw new Error('API configuration is invalid');
       }
 
-      const response = await fetch(`${API_URL}/Content/Summarize`, {
+      const response = await fetch(`${API_URL}/content/summarize`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${API_KEY}`,
@@ -399,7 +399,7 @@ export const autoContentApi = {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch(`${API_URL}/Content/Upload`, {
+      const response = await fetch(`${API_URL}/content/upload`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${API_KEY}`,

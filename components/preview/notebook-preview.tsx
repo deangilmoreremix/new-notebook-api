@@ -8,11 +8,11 @@ import { ProcessRequest, ProcessResponse, ContentStatus } from './types/api';
 
 // API Endpoints
 const ENDPOINTS = {
-  create: '/Content/Create',
-  status: '/Content/Status',
-  usage: '/Content/Usage',
-  list: '/Content/List',
-  webhook: '/Content/Webhook',
+  create: '/content/create',
+  status: '/content/status',
+  usage: '/content/usage',
+  list: '/content/list',
+  webhook: '/content/webhook',
   studio: {
     analyze: '/Studio/Analyze',
     generate: '/Studio/Generate',
@@ -153,7 +153,7 @@ export const autoContentApi = {
     customization?: any;
   } = {}) {
     try {
-      const url = `${AUTOCONTENT_API_URL}/Content/Create`;
+      const url = `${AUTOCONTENT_API_URL}/content/create`;
       const headers = {
         'Authorization': `Bearer ${API_KEY}`,
         'Content-Type': 'application/json'
@@ -285,7 +285,7 @@ export const autoContentApi = {
         throw new Error('API configuration is invalid');
       }
 
-      const response = await fetch(`${API_URL}/Content/Summarize`, {
+      const response = await fetch(`${API_URL}/content/summarize`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${API_KEY}`,
@@ -399,7 +399,7 @@ export const autoContentApi = {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch(`${API_URL}/Content/Upload`, {
+      const response = await fetch(`${API_URL}/content/upload`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${API_KEY}`,

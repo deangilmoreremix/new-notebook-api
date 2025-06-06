@@ -1,55 +1,34 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Plus, Grid, List, MoreVertical } from 'lucide-react';
-
-const notebooks = [
-  {
-    title: 'Untitled notebook',
-    date: 'Jan 24, 2025',
-    sources: '0 sources',
-    icon: '📁'
-  },
-  {
-    title: 'VideoRemix: Personalized Video Creation',
-    date: 'Jan 23, 2025',
-    sources: '1 source',
-    icon: '📈'
-  },
-  {
-    title: 'VideoRemix: Personalized Video Analysis',
-    date: 'Jan 17, 2025',
-    sources: '1 source',
-    icon: '📈'
-  },
-  {
-    title: 'The Solopreneur Revolution',
-    date: 'Jan 15, 2025',
-    sources: '5 sources',
-    icon: '🚀'
-  },
-  {
-    title: 'SMS-iT: AI-Powered CRM',
-    date: 'Jan 14, 2025',
-    sources: '2 sources',
-    icon: '🚀'
-  }
-];
+import { notebookStorage, Notebook } from '@/lib/notebook-storage';
 
 export function DashboardContent() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState('Most recent');
+  const [notebooks, setNotebooks] = useState<Notebook[]>([]);
+
+  useEffect(() => {
+    setNotebooks(notebookStorage.load());
+  }, []);
+
+  const handleCreate = () => {
+    const nb = notebookStorage.add('Untitled notebook');
+    setNotebooks(prev => [nb, ...prev]);
+  };
 
   return (
     <div className="mb-8">
       <h2 className="text-xl font-medium text-gray-900 mb-4">My Notebooks</h2>
       
       <div className="flex items-center justify-between mb-6">
-        <Button 
+        <Button
           variant="outline"
           className="flex items-center gap-2 bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200"
+          onClick={handleCreate}
         >
           <Plus className="h-4 w-4" />
           Create new
@@ -89,9 +68,9 @@ export function DashboardContent() {
       </div>
 
       <div className={`grid ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'} gap-4`}>
-        {notebooks.map((notebook, index) => (
-          <Card 
-            key={index}
+        {notebooks.map((notebook) => (
+          <Card
+            key={notebook.id}
             className="p-4 hover:shadow-md transition-shadow cursor-pointer group relative bg-gradient-to-br from-gray-50 to-white"
           >
             <Button
@@ -101,12 +80,11 @@ export function DashboardContent() {
             >
               <MoreVertical className="h-4 w-4" />
             </Button>
-            <div className="mb-3 text-2xl">{notebook.icon}</div>
             <h3 className="font-medium text-gray-900 mb-1 line-clamp-2">
               {notebook.title}
             </h3>
             <div className="text-sm text-gray-500">
-              {notebook.date} • {notebook.sources}
+              {new Date(notebook.createdAt).toLocaleDateString()}
             </div>
           </Card>
         ))}

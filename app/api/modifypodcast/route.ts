@@ -7,7 +7,7 @@ async function checkStatusWithPolling(requestId) {
   const startTime = Date.now();
   while (true) {
     try {
-      const response = await fetch(`${API_URL}/Content/Status/${requestId}`, {
+      const response = await fetch(`${API_URL}/content/status/${requestId}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${API_KEY}`,
@@ -24,7 +24,7 @@ async function checkStatusWithPolling(requestId) {
       }
       
       // Check if more than 3 minutes have elapsed
-      if (Date.now() - startTime > 600000) { // 3 minutes timeout
+      if (Date.now() - startTime > 180000) { // 3 minutes timeout
         console.log("⏳ Request pending for more than 3 minutes.");
         return {
           status: data.status,
@@ -59,7 +59,7 @@ export async function POST(request) {
       voice2
     };
 
-    const response = await fetch(`${API_URL}/Content/ModifyPodcast`, {
+    const response = await fetch(`${API_URL}/content/modifypodcast`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${API_KEY}`,
