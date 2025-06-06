@@ -1,4 +1,10 @@
-import { ProcessRequest } from "../api";
+import type {
+  ProcessRequest,
+  CreatePodcastCustomVoicesRequest,
+  CreatePodcastCustomScriptRequest,
+  SeparateSpeakersRequest,
+  CreateShortRequest,
+} from "./types";
 import {
   ContentStatus,
   handleApiError,
@@ -8,33 +14,45 @@ import {
   ProcessResponse,
   validateApiConfig,
 } from "./types";
+import { API_URL, API_KEY } from "../constants";
+import { API_CONSTANTS } from "./constants";
 
 // API Configuration
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-const API_KEY = "dfe22057-4937-464d-8d75-9c04f081acd4";
+// API configuration values are imported from lib/constants to ensure
+// sensible defaults during testing when environment variables may be unset.
 
 // API Endpoints
 const ENDPOINTS = {
-  create: "/Content/Create",
-  status: "/Content/Status",
-  getVoices: "/Content/GetVoices",
-  cloneVoice: "/Content/CloneVoice",
-  usage: "/Content/Usage",
-  list: "/Content/List",
-  webhook: "/Content/Webhook",
+  // Core content endpoints
+  create: "/content/create",
+  status: "/content/status",
+  getVoices: "/content/getvoices",
+  cloneVoice: "/content/clonevoice",
+  createPodcastCustomVoices: "/content/createpodcastcustomvoices",
+  createPodcastCustomScript: "/content/createpodcastcustomscript",
+  separateSpeakers: "/content/separatespeakersaudio",
+  createShort: "/content/createshorts",
+  usage: "/content/usage",
+  list: "/content/list",
+  webhook: "/content/webhook",
+
+  // Studio endpoints
   studio: {
-    analyze: "/Studio/Analyze",
-    generate: "/Studio/Generate",
-    compare: "/Studio/Compare",
-    export: "/Studio/Export",
+    analyze: "/studio/analyze",
+    generate: "/studio/generate",
+    compare: "/studio/compare",
+    export: "/studio/export",
     tools: {
-      summarize: "/Studio/Tools/Summarize",
-      highlight: "/Studio/Tools/Highlight",
-      annotate: "/Studio/Tools/Annotate",
-      search: "/Studio/Tools/Search",
+      summarize: "/studio/tools/summarize",
+      highlight: "/studio/tools/highlight",
+      annotate: "/studio/tools/annotate",
+      search: "/studio/tools/search",
     },
   },
 } as const;
+
+// Determine if we should use mock responses in development
+const OFFLINE_MODE = process.env.NODE_ENV === "development";
 
 interface Voice {
   id: string;
@@ -161,7 +179,7 @@ export const autoContentApi = {
     try {
       console.log("Sending modifyPodcast request:", request);
   
-      const response = await fetch(`api/modifypodcast`, {
+      const response = await fetch(`/api/modifypodcast`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${API_KEY}`,
@@ -197,6 +215,86 @@ export const autoContentApi = {
       throw error;
     }
   },
+
+  async createPodcastCustomVoices(
+    request: CreatePodcastCustomVoicesRequest
+  ): Promise<ProcessResponse> {
+    try {
+      const response = await fetch(`/api/createpodcastcustomvoices`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${API_KEY}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(request),
+      });
+
+      return handleApiResponse(response, "createPodcastCustomVoices");
+    } catch (error) {
+      return handleApiError(error, "createPodcastCustomVoices");
+    }
+  },
+
+  async createPodcastCustomScript(
+    request: CreatePodcastCustomScriptRequest
+  ): Promise<ProcessResponse> {
+    try {
+      const response = await fetch(`/api/createpodcastcustomscript`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${API_KEY}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(request),
+      });
+
+      return handleApiResponse(response, "createPodcastCustomScript");
+    } catch (error) {
+      return handleApiError(error, "createPodcastCustomScript");
+    }
+  },
+
+  async separateSpeakers(
+    request: SeparateSpeakersRequest
+  ): Promise<ProcessResponse> {
+    try {
+      const response = await fetch(`/api/separatespeakersaudio`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${API_KEY}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(request),
+      });
+
+      return handleApiResponse(response, "separateSpeakers");
+    } catch (error) {
+      return handleApiError(error, "separateSpeakers");
+    }
+  },
+
+  async createShort(
+    request: CreateShortRequest
+  ): Promise<ProcessResponse> {
+    try {
+      const response = await fetch(`/api/createshorts`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${API_KEY}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(request),
+      });
+
+      return handleApiResponse(response, "createShort");
+    } catch (error) {
+      return handleApiError(error, "createShort");
+    }
+  },
   
 
   async cloneVoice(audioFile: File, name: string): Promise<Voice> {
@@ -215,10 +313,10 @@ export const autoContentApi = {
         audioFile.type
       );
 
-      // Validate file size (max 10MB)
-      if (audioFile.size > 10 * 1024 * 1024) {
+      // Validate file size
+      if (audioFile.size > API_CONSTANTS.MAX_FILE_SIZE) {
         console.log("Audio file too large:", audioFile.size);
-        throw new Error("Audio file must be under 10MB");
+        throw new Error("Audio file must be under 50MB");
       }
 
       // Validate file type
@@ -543,7 +641,7 @@ export const autoContentApi = {
     }
 
     while (attempts < maxAttempts) {
-      const response = await fetch(`${API_URL}/Content/Status/${requestId}`, {
+      const response = await fetch(`${API_URL}/content/status/${requestId}`, {
         headers: {
           Authorization: `Bearer ${API_KEY}`,
           "Content-Type": "application/json",
@@ -575,9 +673,8 @@ export const autoContentApi = {
       }
 
       // Validate file
-      if (file.size > 10 * 1024 * 1024) {
-        // 10MB limit
-        throw new Error("File too large (max 10MB)");
+      if (file.size > API_CONSTANTS.MAX_FILE_SIZE) {
+        throw new Error("File too large (max 50MB)");
       }
 
       const validTypes = ["application/pdf", "text/plain", "text/markdown"];
@@ -588,7 +685,7 @@ export const autoContentApi = {
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await fetch(`${API_URL}/content/create`, {
+      const response = await fetch(`${API_URL}/content/upload`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${API_KEY}`,
@@ -597,7 +694,7 @@ export const autoContentApi = {
         body: formData,
       });
 
-      return handleResponse(response, "uploadSource");
+      return handleApiResponse(response, "uploadSource");
     } catch (error) {
       console.error("Source upload error:", error);
       return handleApiError(error, "uploadSource");
@@ -637,7 +734,7 @@ export const autoContentApi = {
         body: JSON.stringify(request),
       });
 
-      const result = await handleResponse(response, "processContent");
+      const result = await handleApiResponse(response, "processContent");
 
       if (result.request_id) {
         // Poll for completion
@@ -684,10 +781,55 @@ export const autoContentApi = {
         }),
       });
 
-      return handleResponse(response, "analyzeSource");
+      return handleApiResponse(response, "analyzeSource");
     } catch (error) {
       console.error("Source analysis error:", error);
       return handleApiError(error, "analyzeSource");
+    }
+  },
+
+  /**
+   * Perform sentiment analysis on an arbitrary block of text.
+   * This mirrors the Studio analyze endpoint with a `sentiment` type.
+   * The implementation is intentionally simple as tests mock out the
+   * network layer.
+   */
+  async analyzeContentSentiment(content: string, options?: Record<string, any>) {
+    try {
+      const response = await fetch(`${API_URL}${ENDPOINTS.studio.analyze}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ content, type: "sentiment", options }),
+      });
+
+      return handleApiResponse(response, "analyzeContentSentiment");
+    } catch (error) {
+      console.error("Sentiment analysis error:", error);
+      return handleApiError(error, "analyzeContentSentiment");
+    }
+  },
+
+  /**
+   * Extract argumentative structures from text.
+   */
+  async extractArgumentation(content: string, options?: Record<string, any>) {
+    try {
+      const response = await fetch(`${API_URL}${ENDPOINTS.studio.analyze}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ content, type: "argumentation", options }),
+      });
+
+      return handleApiResponse(response, "extractArgumentation");
+    } catch (error) {
+      console.error("Argumentation extraction error:", error);
+      return handleApiError(error, "extractArgumentation");
     }
   },
 

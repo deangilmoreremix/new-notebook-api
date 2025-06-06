@@ -1,6 +1,9 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI("AIzaSyBZ5NQ3dF5sdMBSjfkD6Oejw9VRhPTSUdc");
+// The Gemini API key is read from the environment so secrets are not
+// committed to the repository. Provide an empty string if undefined so
+// the library fails gracefully in tests without network access.
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 export const geminiService = {
   async analyzeSentiment(text: string) {

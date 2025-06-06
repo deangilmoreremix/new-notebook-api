@@ -12,6 +12,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { geminiService } from '@/lib/gemini';
 import { storageService } from '@/lib/storage';
 import { SourceOverview } from '@/components/source-overview';
+import { API_CONSTANTS } from '@/lib/api/constants';
 
 interface UploadModalProps {
   isOpen: boolean;
@@ -44,10 +45,10 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const validFiles = acceptedFiles.filter(file => {
-      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      if (file.size > API_CONSTANTS.MAX_FILE_SIZE) {
         toast({
           title: "File too large",
-          description: `${file.name} exceeds 10MB limit`,
+          description: `${file.name} exceeds 50MB limit`,
           variant: "destructive"
         });
         return false;
@@ -77,7 +78,7 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
       'text/plain': ['.txt'],
       'text/markdown': ['.md']
     },
-    maxSize: 10 * 1024 * 1024 // 10MB
+    maxSize: API_CONSTANTS.MAX_FILE_SIZE
   });
 
   const handleUpload = async () => {

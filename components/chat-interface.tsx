@@ -268,6 +268,7 @@ export function ChatInterface({
           <Button
             onClick={handleSend}
             disabled={isLoading || !input.trim()}
+            aria-label="Send"
             className="bg-blue-600 hover:bg-blue-700"
           >
             {isLoading ? (
