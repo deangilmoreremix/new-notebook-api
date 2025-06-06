@@ -7,6 +7,14 @@ export interface Voice {
   gender?: string;
   isCloned?: boolean;
   sourceAudio?: string;
+  preview_url?: string;
+  accent?: string;
+  settings?: {
+    speed_range: { min: number; max: number };
+    pitch_range: { min: number; max: number };
+    emphasis_levels: string[];
+    emotion_intensities: string[];
+  };
 }
 
 export interface GenerationOptions {

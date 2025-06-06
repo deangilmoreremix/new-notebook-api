@@ -226,7 +226,6 @@ export function AudioOverviewDialog({
       </SelectItem>
     );
   };
- 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px] bg-gradient-to-br from-[#1A1B1E]/95 to-[#2B2D31]/95 backdrop-blur-lg border-[#3B3D41] shadow-xl">
@@ -268,6 +267,7 @@ export function AudioOverviewDialog({
               </div>
             </div>
           ) : (
+            
             <>
               <div className="grid gap-2">
                 <Label>First Speaker Voice</Label>

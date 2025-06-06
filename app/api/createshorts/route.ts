@@ -1,53 +1,58 @@
 import { NextResponse } from 'next/server';
-import { API_URL, API_KEY } from '@/lib/constants';
 
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
 
-async function checkStatus(requestId: string) {
-  const start = Date.now();
-  while (true) {
-    try {
-      const res = await fetch(`${API_URL}/content/status/${requestId}`, {
-        headers: {
-          Authorization: `Bearer ${API_KEY}`,
-          Accept: 'application/json'
-        }
-      });
-      const data = await res.json();
-      if (data.status === 100) {
-        return data;
-      }
-      if (Date.now() - start > 180000) {
-        return { status: data.status, message: 'Request pending for over 3 minutes' };
-      }
-    } catch (e) {
-      console.error('Polling error', e);
-    }
-    await delay(5000);
+export async function POST(request: Request) {
+  if (!API_KEY) {
+    return NextResponse.json({ error: 'API key not configured' }, { status: 500 });
   }
-}
 
-export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const response = await fetch(`${API_URL}/content/createshorts`, {
+    const body = await request.json();
+    const { audioUrl, prompt, avatar1, avatar2, callbackData } = body;
+
+    if (!audioUrl) {
+      return NextResponse.json({ error: 'Audio URL is required' }, { status: 400 });
+    }
+
+    const requestBody = {
+      audioUrl,
+      prompt,
+      avatar1: avatar1 || 'M',
+      avatar2: avatar2 || 'F',
+      callbackData
+    };
+
+    console.log('Sending request to API:', requestBody);
+
+    const response = await fetch(`${API_URL}/video/CreateShorts`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${API_KEY}`,
         'Content-Type': 'application/json',
-        Accept: 'application/json',
-        'User-Agent': 'SmartNotebook/1.0'
+        'Authorization': `Bearer ${API_KEY}`
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(requestBody)
     });
+
     const data = await response.json();
-    if (!data.request_id) {
+    console.log('API Response:', data);
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to create short');
+    }
+
+    if (!data.requestId) {
       return NextResponse.json({ error: 'No request ID received' }, { status: 400 });
     }
-    const finalResult = await checkStatus(data.request_id);
-    return NextResponse.json({ status: 'success', initialResponse: data, finalResult }, { status: 200 });
+
+    return NextResponse.json({ request_id: data.requestId });
+
   } catch (error) {
     console.error('Error creating short:', error);
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Failed to create short' },
+      { status: 500 }
+    );
   }
 }

@@ -127,16 +127,22 @@ export function VoiceCloneDialog({
     setProgress(0);
 
     try {
-      // Simulate progress updates
+      // Start progress simulation
       const progressInterval = setInterval(() => {
-        setProgress(prev => Math.min(prev + 10, 90));
+        setProgress(prev => Math.min(prev + 5, 90));
       }, 1000);
 
+      // Clone the voice
       const clonedVoice = await autoContentApi.cloneVoice(audioFile, name);
       
+      // Clear progress interval and set to 100%
       clearInterval(progressInterval);
       setProgress(100);
 
+      // Add a small delay to show 100% progress
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Handle successful cloning
       onVoiceCreated(clonedVoice);
       toast({
         title: "Voice cloned successfully",
@@ -150,13 +156,28 @@ export function VoiceCloneDialog({
       setProgress(0);
       onClose();
     } catch (error) {
+      // Handle specific error cases
+      let errorMessage = "Failed to clone voice";
+      if (error instanceof Error) {
+        if (error.message.includes("API key is missing")) {
+          errorMessage = "API key is not configured";
+        } else if (error.message.includes("Audio file too large")) {
+          errorMessage = "Audio file must be under 50MB";
+        } else if (error.message.includes("Invalid file type")) {
+          errorMessage = "Please upload a valid audio file (MP3 or WAV)";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
       toast({
         title: "Voice cloning failed",
-        description: error instanceof Error ? error.message : "Failed to clone voice",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
       setIsCloning(false);
+      setProgress(0);
     }
   };
 
