@@ -571,7 +571,7 @@ export function NotebookInterface() {
           <div className="p-4">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <h2 className="text-sm font-medium text-white">Studio</h2>
+                <h2 className="text-sm font-medium text-white">Studio2</h2>
               </div>
               <Button
                 variant="ghost"
