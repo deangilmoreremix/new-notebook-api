@@ -8,6 +8,8 @@ A modern document analysis and content generation tool.
 ```env
 NEXT_PUBLIC_API_URL=https://api.autocontentapi.com
 NEXT_PUBLIC_API_KEY=your_api_key_here
+OPENAI_API_KEY=your_openai_key
+GEMINI_API_KEY=your_gemini_key
 ```
 
 2. Get your API key:
@@ -46,5 +48,7 @@ The application uses:
 ## Environment Variables
 
 - `NEXT_PUBLIC_API_URL`: The API endpoint (default: https://api.autocontentapi.com)
-- `NEXT_PUBLIC_API_KEY`: Your API key from AutoContent API
+- `NEXT_PUBLIC_API_KEY`: Your AutoContent API key
+- `OPENAI_API_KEY`: Key for OpenAI features
+- `GEMINI_API_KEY`: Key for Google Gemini features
 - `NODE_ENV`: Development environment setting

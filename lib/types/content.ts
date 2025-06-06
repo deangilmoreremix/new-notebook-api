@@ -100,19 +100,24 @@ export const CONTENT_TYPE_CONFIGS: Record<ContentType, ContentTypeConfig> = {
     icon: 'Book',
     defaultOptions: {
       format: 'structured',
-      tone: 'educational',
+      tone: 'professional',
       length: 'long',
       style: 'educational',
       depth: 'detailed',
       audience: 'beginner',
-      includeExamples: true,
-      includeQuestions: true,
-      includeSummary: true,
-      includeCitations: true
+      elements: {
+        examples: true,
+        questions: true,
+        summary: true,
+        citations: true,
+        keyPoints: true,
+        definitions: true,
+        references: true,
+      }
     },
     availableOptions: [
       'format', 'tone', 'length', 'depth', 'audience', 'complexity',
-      'includeExamples', 'includeQuestions', 'includeSummary', 'includeCitations'
+      'elements'
     ]
   },
   briefing_doc: {
@@ -126,12 +131,17 @@ export const CONTENT_TYPE_CONFIGS: Record<ContentType, ContentTypeConfig> = {
       style: 'analytical',
       depth: 'balanced',
       audience: 'expert',
-      includeSummary: true,
-      includeCitations: true
+      elements: {
+        summary: true,
+        citations: true,
+        keyPoints: true,
+        definitions: true,
+        references: true,
+      }
     },
     availableOptions: [
       'format', 'tone', 'length', 'depth', 'audience',
-      'includeSummary', 'includeCitations'
+      'elements'
     ]
   },
   faq: {
@@ -145,11 +155,19 @@ export const CONTENT_TYPE_CONFIGS: Record<ContentType, ContentTypeConfig> = {
       style: 'educational',
       depth: 'balanced',
       audience: 'general',
-      includeExamples: true
+      elements: {
+        examples: true,
+        questions: true,
+        summary: true,
+        citations: true,
+        keyPoints: true,
+        definitions: true,
+        references: true,
+      }
     },
     availableOptions: [
       'tone', 'length', 'audience', 'complexity',
-      'includeExamples', 'includeCitations'
+      'elements'
     ]
   },
   timeline: {
@@ -158,15 +176,20 @@ export const CONTENT_TYPE_CONFIGS: Record<ContentType, ContentTypeConfig> = {
     icon: 'Clock',
     defaultOptions: {
       format: 'structured',
-      tone: 'neutral',
+      tone: 'professional',
       length: 'medium',
       style: 'analytical',
       depth: 'balanced',
-      includeCitations: true
+      elements: {
+        citations: true,
+        keyPoints: true,
+        definitions: true,
+        references: true,
+      }
     },
     availableOptions: [
       'format', 'tone', 'length', 'depth',
-      'includeCitations'
+      'elements'
     ]
   },
   outline: {
@@ -178,11 +201,17 @@ export const CONTENT_TYPE_CONFIGS: Record<ContentType, ContentTypeConfig> = {
       tone: 'professional',
       length: 'medium',
       depth: 'balanced',
-      includeSummary: true
+      elements: {
+        summary: true,
+        citations: true,
+        keyPoints: true,
+        definitions: true,
+        references: true,
+      }
     },
     availableOptions: [
       'format', 'tone', 'length', 'depth',
-      'includeSummary', 'includeCitations'
+      'elements'
     ]
   },
   deep_dive: {
@@ -196,15 +225,19 @@ export const CONTENT_TYPE_CONFIGS: Record<ContentType, ContentTypeConfig> = {
       style: 'educational',
       depth: 'detailed',
       audience: 'expert',
-      includeExamples: true,
-      includeQuestions: true,
-      includeSummary: true,
-      includeCitations: true
+      elements: {
+        examples: true,
+        questions: true,
+        summary: true,
+        citations: true,
+        keyPoints: true,
+        definitions: true,
+        references: true,
+      }
     },
     availableOptions: [
       'format', 'tone', 'length', 'style', 'perspective', 'depth',
-      'audience', 'complexity', 'includeExamples', 'includeQuestions',
-      'includeSummary', 'includeCitations', 'voice1', 'voice2', 'speakers'
+      'audience', 'complexity', 'elements', 'voice1', 'voice2', 'speakers'
     ]
   },
   flashcards: {
@@ -212,12 +245,20 @@ export const CONTENT_TYPE_CONFIGS: Record<ContentType, ContentTypeConfig> = {
     description: 'Study cards for key concepts',
     icon: 'Square',
     defaultOptions: {
-      tone: 'educational',
+      tone: 'professional',
       complexity: 'intermediate',
-      includeExamples: true
+      elements: {
+        examples: true,
+        questions: true,
+        summary: true,
+        citations: true,
+        keyPoints: true,
+        definitions: true,
+        references: true,
+      }
     },
     availableOptions: [
-      'tone', 'complexity', 'includeExamples'
+      'tone', 'complexity', 'elements'
     ]
   }
 };

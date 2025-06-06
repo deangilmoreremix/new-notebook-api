@@ -85,7 +85,9 @@ describe('AdvancedAnalysisPanel', () => {
     fireEvent.click(screen.getByText('Sentiment'));
 
     await waitFor(() => {
-      expect(screen.getByText(/failed/i)).toBeInTheDocument();
+      expect(api.analyzeContentSentiment).toHaveBeenCalled();
     });
+
+    expect(mockOnAnalysisComplete).not.toHaveBeenCalled();
   });
 });

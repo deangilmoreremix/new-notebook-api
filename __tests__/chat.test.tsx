@@ -12,17 +12,22 @@ describe('ChatInterface', () => {
 
   it('renders chat interface', () => {
     render(<ChatInterface onShowUpload={() => {}} />);
-    expect(screen.getByPlaceholderText('Type your message...')).toBeInTheDocument();
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
   });
 
   it('sends messages and displays responses', async () => {
-    (api.generateStudioContent as jest.Mock).mockResolvedValue({
+    (api.createContent as jest.Mock).mockResolvedValue({
+      request_id: 'req1',
+      status: 'processing'
+    });
+    (api.getContentStatus as jest.Mock).mockResolvedValue({
+      status: 'completed',
       content: 'Test response'
     });
 
     render(<ChatInterface onShowUpload={() => {}} />);
     
-    const input = screen.getByPlaceholderText('Type your message...');
+    const input = screen.getByRole('textbox');
     await userEvent.type(input, 'Test message');
     
     fireEvent.click(screen.getByRole('button', { name: /send/i }));
@@ -34,11 +39,11 @@ describe('ChatInterface', () => {
   });
 
   it('handles API errors gracefully', async () => {
-    (api.generateStudioContent as jest.Mock).mockRejectedValue(new Error('API Error'));
+    (api.createContent as jest.Mock).mockRejectedValue(new Error('API Error'));
 
     render(<ChatInterface onShowUpload={() => {}} />);
     
-    const input = screen.getByPlaceholderText('Type your message...');
+    const input = screen.getByRole('textbox');
     await userEvent.type(input, 'Test message');
     
     fireEvent.click(screen.getByRole('button', { name: /send/i }));
@@ -49,13 +54,14 @@ describe('ChatInterface', () => {
   });
 
   it('shows loading state while generating response', async () => {
-    (api.generateStudioContent as jest.Mock).mockImplementation(
-      () => new Promise(resolve => setTimeout(resolve, 1000))
+    (api.createContent as jest.Mock).mockResolvedValue({ request_id: 'req1' });
+    (api.getContentStatus as jest.Mock).mockImplementation(
+      () => new Promise(resolve => setTimeout(() => resolve({ status: 'processing' }), 1000))
     );
 
     render(<ChatInterface onShowUpload={() => {}} />);
     
-    const input = screen.getByPlaceholderText('Type your message...');
+    const input = screen.getByRole('textbox');
     await userEvent.type(input, 'Test message');
     
     fireEvent.click(screen.getByRole('button', { name: /send/i }));
@@ -66,7 +72,7 @@ describe('ChatInterface', () => {
   it('handles enter key press', async () => {
     render(<ChatInterface onShowUpload={() => {}} />);
     
-    const input = screen.getByPlaceholderText('Type your message...');
+    const input = screen.getByRole('textbox');
     await userEvent.type(input, 'Test message{enter}');
     
     expect(input).toHaveValue('');

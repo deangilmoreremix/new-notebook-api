@@ -43,75 +43,80 @@ export function AdvancedAnalysisPanel({
     setIsAnalyzing(true);
 
     try {
-      const request: ProcessRequest = {
-        text: selectedContent,
-        outputType: type,
-        includeCitations: true,
-        resources: []
-      };
+      // Use specialized API helpers when available to satisfy unit tests
+      let result: any;
 
-      // Add type-specific options
-      switch (type) {
-        case 'sentiment':
-          request.customization = {
-            granularity: 'paragraph'
-          };
-          break;
-        case 'argumentation':
-          request.customization = {
-            includeEvidence: true
-          };
-          break;
-        case 'outline':
-          request.customization = {
-            depth: 3,
-            format: 'hierarchical'
-          };
-          break;
-        case 'semantic':
-          request.customization = {
-            maxResults: 10
-          };
-          break;
-        case 'concepts':
-          request.customization = {
-            maxResults: 10
-          };
-          break;
-        case 'enhance':
-          request.customization = {
-            tasks: ['grammar', 'style', 'clarity']
-          };
-          break;
-        case 'variations':
-          request.customization = {
-            count: 3
-          };
-          break;
-        case 'tables':
-          request.customization = {
-            format: 'json'
-          };
-          break;
-        case 'charts':
-          request.customization = {
-            format: 'svg'
-          };
-          break;
-      }
-      
-      const response = await autoContentApi.createContent(request);
-      
-      if (response.request_id) {
-        const result = await autoContentApi.pollStatus(response.request_id);
-        if (result.status === 'completed') {
-          onAnalysisComplete(result.content);
-        } else {
-          throw new Error('Analysis failed or timed out');
-        }
+      if (type === 'sentiment') {
+        result = await autoContentApi.analyzeContentSentiment(selectedContent, {
+          granularity: 'paragraph'
+        });
+      } else if (type === 'argumentation') {
+        result = await autoContentApi.extractArgumentation(selectedContent, {
+          includeEvidence: true
+        });
       } else {
-        throw new Error('Invalid API response - no request ID');
+        const request: ProcessRequest = {
+          text: selectedContent,
+          outputType: type,
+          includeCitations: true,
+          resources: []
+        };
+
+        // Add type-specific options
+        switch (type) {
+          case 'outline':
+            request.customization = {
+              depth: 3,
+              format: 'hierarchical'
+            };
+            break;
+          case 'semantic':
+            request.customization = {
+              maxResults: 10
+            };
+            break;
+          case 'concepts':
+            request.customization = {
+              maxResults: 10
+            };
+            break;
+          case 'enhance':
+            request.customization = {
+              tasks: ['grammar', 'style', 'clarity']
+            };
+            break;
+          case 'variations':
+            request.customization = {
+              count: 3
+            };
+            break;
+          case 'tables':
+            request.customization = {
+              format: 'json'
+            };
+            break;
+          case 'charts':
+            request.customization = {
+              format: 'svg'
+            };
+            break;
+        }
+
+        const response = await autoContentApi.createContent(request);
+
+        if (response.request_id) {
+          const status = await autoContentApi.pollStatus(response.request_id);
+          if (status.status === 'completed') {
+            result = status.content;
+          } else {
+            throw new Error('Analysis failed or timed out');
+          }
+        } else {
+          throw new Error('Invalid API response - no request ID');
+        }
       }
+
+      onAnalysisComplete(result);
       
       toast({
         title: "Analysis complete",

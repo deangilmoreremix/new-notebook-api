@@ -13,7 +13,7 @@ export async function GET(request: Request) {
 
     try {
         const response = await axios.get(
-            `https://api.autocontentapi.com/Content/Status/${requestId}`,
+            `https://api.autocontentapi.com/content/status/${requestId}`,
             {
                 headers: {
                     'Authorization': `Bearer ${BEARER_TOKEN}`,

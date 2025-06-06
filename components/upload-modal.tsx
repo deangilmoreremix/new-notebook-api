@@ -12,6 +12,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { geminiService } from '@/lib/gemini';
 import { storageService } from '@/lib/storage';
 import { SourceOverview } from '@/components/source-overview';
+import { API_CONSTANTS } from '@/lib/api/constants';
 
 interface UploadModalProps {
   isOpen: boolean;
@@ -44,17 +45,17 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const validFiles = acceptedFiles.filter(file => {
-      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      if (file.size > API_CONSTANTS.MAX_FILE_SIZE) {
         toast({
           title: "File too large",
-          description: `${file.name} exceeds 10MB limit`,
+          description: `${file.name} exceeds 50MB limit`,
           variant: "destructive"
         });
         return false;
       }
       
       // Validate file type
-      const validTypes = ['application/pdf', 'text/plain'];
+      const validTypes = API_CONSTANTS.VALID_FILE_TYPES;
       if (!validTypes.includes(file.type)) {
         toast({
           title: "Invalid file type",
@@ -75,9 +76,11 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
     accept: {
       'application/pdf': ['.pdf'],
       'text/plain': ['.txt'],
-      'text/markdown': ['.md']
+      'text/markdown': ['.md'],
+      'audio/mpeg': ['.mp3'],
+      'audio/wav': ['.wav']
     },
-    maxSize: 10 * 1024 * 1024 // 10MB
+    maxSize: API_CONSTANTS.MAX_FILE_SIZE
   });
 
    const handleUpload = async () => {
@@ -96,7 +99,11 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
           content = await new Promise<string>((resolve, reject) => {
             reader.onload = () => resolve(reader.result as string);
             reader.onerror = reject;
-            reader.readAsText(file);
+            if (file.type.startsWith('audio/')) {
+              reader.readAsDataURL(file);
+            } else {
+              reader.readAsText(file);
+            }
           });
           type = file.type;
           title = file.name;

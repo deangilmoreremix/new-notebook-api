@@ -3,7 +3,7 @@ import { API_URL, API_KEY } from '@/lib/constants';
 
 export async function GET() {
     try {
-        const response = await fetch(`${API_URL}/Content/GetVoices`, {
+        const response = await fetch(`${API_URL}/content/getvoices`, {
             headers: {
                 'Authorization': `Bearer ${API_KEY}`,
                 'Content-Type': 'application/json',

@@ -223,3 +223,29 @@ export interface ProcessResponse {
   error?: string;
   audio_url?: string;
 }
+export interface CreatePodcastCustomVoicesRequest {
+  resources: { content: string; type: string }[];
+  text: string;
+  voice1: string;
+  voice2: string;
+  callbackData?: string;
+}
+
+export interface CreatePodcastCustomScriptRequest {
+  script: string;
+  voice1: string;
+  voice2: string;
+  callbackData?: string;
+}
+
+export interface SeparateSpeakersRequest {
+  audioUrl: string;
+  callbackData?: string;
+}
+
+export interface CreateShortRequest {
+  audioUrl: string;
+  prompt?: string;
+  firstAvatarGender?: string;
+  callbackData?: string;
+}

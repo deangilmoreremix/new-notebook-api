@@ -36,7 +36,7 @@ describe('autoContentApi', () => {
 
       expect(result).toEqual(mockResponse);
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/content/create'),
+        expect.stringContaining('/content/upload'),
         expect.objectContaining({
           method: 'POST',
           headers: expect.objectContaining({

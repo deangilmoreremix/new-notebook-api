@@ -8,7 +8,7 @@ export const API_CONSTANTS = {
 
   // Content Limits
   MAX_CONTENT_LENGTH: 50000,
-  MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
+  MAX_FILE_SIZE: 50 * 1024 * 1024, // 50MB
   
   // Voice Settings
   VOICE_SETTINGS: {
@@ -51,7 +51,7 @@ export const API_CONSTANTS = {
 // Error Messages
 export const ERROR_MESSAGES = {
   INVALID_API_KEY: 'Invalid API key configuration',
-  FILE_TOO_LARGE: 'File size exceeds maximum limit of 10MB',
+  FILE_TOO_LARGE: 'File size exceeds maximum limit of 50MB',
   INVALID_FILE_TYPE: 'Invalid file type. Supported types: PDF, TXT, MD, MP3, WAV',
   NETWORK_ERROR: 'Network error occurred. Please check your connection',
   TIMEOUT_ERROR: 'Request timed out. Please try again',

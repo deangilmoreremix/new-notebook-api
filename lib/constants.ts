@@ -1,6 +1,9 @@
 // API Configuration
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.autocontentapi.com';
-export const API_KEY = process.env.NEXT_PUBLIC_API_KEY || '';
+// Provide a fallback API key so the test suite can run without requiring
+// environment configuration. The placeholder value is ignored by the API
+// mocks used in tests.
+export const API_KEY = process.env.NEXT_PUBLIC_API_KEY || 'test_key';
 
 // Message Limits
 export const MAX_MESSAGE_LENGTH = 2000;

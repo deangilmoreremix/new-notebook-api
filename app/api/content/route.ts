@@ -7,7 +7,7 @@ async function checkStatusWithPolling(requestId) {
   const startTime = Date.now();
   while (true) {
     try {
-      const response = await fetch(`${API_URL}/Content/Status/${requestId}`, {
+      const response = await fetch(`${API_URL}/content/status/${requestId}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${API_KEY}`,
@@ -23,9 +23,9 @@ async function checkStatusWithPolling(requestId) {
         return data;
       }
       
-      // Check if more than 3 minutes have elapsed
+      // Check if more than 25 minutes have elapsed
       if (Date.now() - startTime > 1500000) {
-        console.log("⏳ Request pending for more than 3 minutes.");
+        console.log("⏳ Request pending for more than 25 minutes.");
         return {
           status: data.status,
           message: "Your request has been pending for over 25 minutes. Please check back later."
@@ -57,7 +57,7 @@ export async function POST(request) {
       requestBody.customization = body.customization;
     }
 
-    const response = await fetch(`${API_URL}/Content/Create`, {
+    const response = await fetch(`${API_URL}/content/create`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
