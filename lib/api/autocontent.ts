@@ -4,6 +4,8 @@ import type {
   CreatePodcastCustomScriptRequest,
   SeparateSpeakersRequest,
   CreateShortRequest,
+  Voice,
+  CloneVoiceResponse,
 } from "./types";
 import {
   ContentStatus,
@@ -31,10 +33,11 @@ const ENDPOINTS = {
   createPodcastCustomVoices: "/content/createpodcastcustomvoices",
   createPodcastCustomScript: "/content/createpodcastcustomscript",
   separateSpeakers: "/content/separatespeakersaudio",
-  createShort: "/content/createshorts",
+  createShort: "/video/CreateShorts",
   usage: "/content/usage",
   list: "/content/list",
   webhook: "/content/webhook",
+  getAvatars: "/video/GetAvatars",
 
   // Studio endpoints
   studio: {
@@ -54,15 +57,6 @@ const ENDPOINTS = {
 // Determine if we should use mock responses in development
 const OFFLINE_MODE = process.env.NODE_ENV === "development";
 
-interface Voice {
-  id: string;
-  name: string;
-  language: string;
-  gender?: string;
-  isCloned?: boolean;
-  sourceAudio?: string;
-}
-
 interface GenerationOptions {
   format?: string;
   tone?: string;
@@ -81,6 +75,16 @@ interface VoiceCloneOptions {
   audioFile: File;
   gender?: "male" | "female";
   language?: string;
+}
+
+interface Avatar {
+  Id: number;
+  name: string;
+  imageUrl: string;
+  videoUrl: string;
+  token: string | null;
+  createdOn: string;
+  voiceId: string | null;
 }
 
 // Mock response generator for offline mode
@@ -283,16 +287,26 @@ export const autoContentApi = {
       const response = await fetch(`/api/createshorts`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${API_KEY}`,
           "Content-Type": "application/json",
-          Accept: "application/json",
+          "Accept": "application/json",
         },
         body: JSON.stringify(request),
       });
 
-      return handleApiResponse(response, "createShort");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create short');
+      }
+
+      const data = await response.json();
+      return {
+        content: data.finalResult?.content || '',
+        status: 'completed',
+        request_id: data.initialResponse?.request_id
+      };
     } catch (error) {
-      return handleApiError(error, "createShort");
+      console.error('Error in createShort:', error);
+      throw error;
     }
   },
   
@@ -300,36 +314,22 @@ export const autoContentApi = {
   async cloneVoice(audioFile: File, name: string): Promise<Voice> {
     try {
       if (!API_KEY) {
-        console.log("API key is missing");
         throw new Error("API key is missing");
       }
 
-      console.log(
-        "Received file:",
-        audioFile.name,
-        "Size:",
-        audioFile.size,
-        "Type:",
-        audioFile.type
-      );
-
       // Validate file size
       if (audioFile.size > API_CONSTANTS.MAX_FILE_SIZE) {
-        console.log("Audio file too large:", audioFile.size);
-        throw new Error("Audio file must be under 50MB");
+        throw new Error("Audio file too large");
       }
 
       // Validate file type
       if (!audioFile.type.startsWith("audio/")) {
-        console.log("Invalid file type:", audioFile.type);
-        throw new Error("Invalid file type. Must be an audio file.");
+        throw new Error("Invalid file type");
       }
 
       const formData = new FormData();
       formData.append("audio", audioFile);
       formData.append("name", name);
-
-      console.log("Sending POST request to /api/clonevoice with name:", name);
 
       const response = await fetch(`/api/clonevoice`, {
         method: "POST",
@@ -339,36 +339,70 @@ export const autoContentApi = {
         },
         body: formData,
       });
-      console.log("REsponse", response);
-      console.log("Response status:", response.status);
 
       if (!response.ok) {
         const errorData = await response.text();
-        console.log("Error data from server:", errorData);
         throw new Error(`Voice cloning failed: ${errorData}`);
       }
 
-      const result = await response.json();
-      console.log("Received result:", result);
+      const result = await response.json() as CloneVoiceResponse;
 
       // Poll for completion if needed
       if (result.request_id) {
-        console.log("Polling status for request_id:", result.request_id);
-        const cloneStatus = await this.pollStatus(result.request_id);
-        console.log("Clone status:", cloneStatus);
-        if (cloneStatus.status === "failed") {
-          throw new Error(cloneStatus.error || "Voice cloning failed");
+        let attempts = 0;
+        const maxAttempts = 30; // 5 minutes maximum (10 seconds * 30)
+        const pollInterval = 10000; // 10 seconds
+
+        while (attempts < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, pollInterval));
+          attempts++;
+
+          const statusResponse = await fetch(`/api/clonevoice/status?request_id=${result.request_id}`, {
+            headers: {
+              Authorization: `Bearer ${API_KEY}`,
+              Accept: "application/json",
+            },
+          });
+
+          if (!statusResponse.ok) {
+            throw new Error("Failed to check cloning status");
+          }
+
+          const statusData = await statusResponse.json() as CloneVoiceResponse;
+
+          if (statusData.status === "completed") {
+            return {
+              id: statusData.voice_id,
+              name: statusData.name,
+              language: statusData.language || "en-US",
+              isCloned: true,
+              sourceAudio: statusData.source_audio,
+              preview_url: statusData.preview_url,
+              gender: statusData.gender || "unknown",
+              accent: statusData.accent || "neutral",
+              settings: {
+                speed_range: { min: 0.8, max: 1.2 },
+                pitch_range: { min: 0.8, max: 1.2 },
+                emphasis_levels: ["light", "moderate", "strong"],
+                emotion_intensities: ["low", "medium", "high"],
+              },
+            };
+          } else if (statusData.status === "failed") {
+            throw new Error(statusData.error || "Voice cloning failed");
+          }
         }
+
+        throw new Error("Voice cloning timed out");
       }
 
-      // Return formatted voice object
-      const voiceObject = {
-        id: result.voice_id || result.voiceId,
+      // If no request_id, assume immediate completion
+      return {
+        id: result.voice_id,
         name: result.name,
-        language: "en-US",
+        language: result.language || "en-US",
         isCloned: true,
-        sourceAudio: result.source_audio || result.sourceAudio,
-        preview_url: result.preview_url || result.previewUrl,
+        sourceAudio: result.source_audio,
+        preview_url: result.preview_url,
         gender: result.gender || "unknown",
         accent: result.accent || "neutral",
         settings: {
@@ -378,9 +412,6 @@ export const autoContentApi = {
           emotion_intensities: ["low", "medium", "high"],
         },
       };
-
-      console.log("Voice cloning successful:", voiceObject);
-      return voiceObject;
     } catch (error) {
       console.error("Voice cloning error:", {
         error: error instanceof Error ? error.message : "Unknown error",
@@ -874,6 +905,19 @@ export const autoContentApi = {
       return handleApiResponse(response, "getContentStatus");
     } catch (error) {
       return handleApiError(error, "getContentStatus");
+    }
+  },
+
+  async getAvatars(): Promise<Avatar[]> {
+    try {
+      const response = await fetch('/api/getavatars');
+      if (!response.ok) {
+        throw new Error('Failed to fetch avatars');
+      }
+      return response.json();
+    } catch (error) {
+      console.error('Error fetching avatars:', error);
+      throw error;
     }
   },
 };

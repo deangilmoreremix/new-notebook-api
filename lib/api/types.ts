@@ -203,12 +203,34 @@ export interface CloneVoiceRequest {
   style?: string;
 }
 
-export interface CloneVoiceResponse {
-  voiceId: string;
+export interface Voice {
+  id: string;
   name: string;
-  previewUrl?: string;
-  status: 'completed' | 'failed';
-  errorMessage?: string;
+  language: string;
+  gender?: string;
+  isCloned?: boolean;
+  sourceAudio?: string;
+  preview_url?: string;
+  accent?: string;
+  settings?: {
+    speed_range: { min: number; max: number };
+    pitch_range: { min: number; max: number };
+    emphasis_levels: string[];
+    emotion_intensities: string[];
+  };
+}
+
+export interface CloneVoiceResponse {
+  request_id?: string;
+  voice_id: string;
+  name: string;
+  language?: string;
+  source_audio?: string;
+  preview_url?: string;
+  gender?: string;
+  accent?: string;
+  status: 'completed' | 'failed' | 'processing';
+  error?: string;
 }
 
 export interface ModifyPodcastResponse {
@@ -246,6 +268,7 @@ export interface SeparateSpeakersRequest {
 export interface CreateShortRequest {
   audioUrl: string;
   prompt?: string;
-  firstAvatarGender?: string;
+  avatar1?: string;
+  avatar2?: string;
   callbackData?: string;
 }

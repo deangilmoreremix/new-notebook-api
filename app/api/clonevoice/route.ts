@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { API_URL, API_KEY } from '@/lib/constants';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(req: Request) {
   try {
@@ -17,12 +18,33 @@ export async function POST(req: Request) {
       );
     }
 
-    // Save the audio file locally and get a public URL
-    const audioUrl = await saveFileLocally(audioFile);
-    console.log(audioUrl,"audioUrlaudioUrl")
+    if (!(audioFile instanceof File)) {
+      return NextResponse.json(
+        { error: 'Invalid file format' },
+        { status: 400 }
+      );
+    }
+
+    // Create a unique filename
+    const fileExtension = path.extname(audioFile.name);
+    const uniqueFileName = `${uuidv4()}${fileExtension}`;
+    
+    // Save the audio file locally
+    const publicPath = path.join(process.cwd(), 'public', 'media');
+    await fs.mkdir(publicPath, { recursive: true });
+    const filePath = path.join(publicPath, uniqueFileName);
+    
+    // Convert the file to a Buffer and write it to disk
+    const buffer = Buffer.from(await audioFile.arrayBuffer());
+    await fs.writeFile(filePath, buffer);
+
+    // Get the base URL from environment or use a default
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const audioUrl = `${baseUrl}/media/${uniqueFileName}`;
+
     // Prepare the payload for the voice cloning API
     const payload = {
-      audioUrl, // URL of the uploaded audio file
+      audioUrl,
       name,
     };
 
@@ -39,13 +61,18 @@ export async function POST(req: Request) {
 
     if (!response.ok) {
       const errorData = await response.text();
+      // Clean up the uploaded file if the API call fails
+      try {
+        await fs.unlink(filePath);
+      } catch (cleanupError) {
+        console.error('Failed to clean up file:', cleanupError);
+      }
       throw new Error(`Voice cloning failed: ${errorData}`);
     }
 
     const result = await response.json();
     return NextResponse.json(result);
   } catch (error) {
-    console.log(error,"errorerrorerrorerror")
     console.error('Voice cloning error:', {
       error: error instanceof Error ? error.message : 'Unknown error',
       timestamp: new Date().toISOString(),

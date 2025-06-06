@@ -17,7 +17,8 @@ import {
   CheckSquare,
   Loader2,
   Edit,
-  PlayCircle
+  PlayCircle,
+  X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,6 +46,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useVoices } from '@/hooks/use-voices';
+import { CreateShortDialog } from '@/components/create-short-dialog';
 
 export function NotebookInterface() {
   const staticAudioUrl = "https://autocontentapi.blob.core.windows.net/audios/67fa9f5b-3d38-4382-abf8-13f7d103d817_20250224092847.wav";
@@ -75,6 +77,9 @@ export function NotebookInterface() {
   const [generatedSummary, setgeneratedSummary] = useState<{
   } | null>(null);
   const [modifiedAudioUrl, setModifiedAudioUrl] = useState<string | null>(null);
+  const [showCreateShortDialog, setShowCreateShortDialog] = useState(false);
+  const [generatedShortUrl, setGeneratedShortUrl] = useState<string | null>(null);
+  const [showVideoPreview, setShowVideoPreview] = useState(false);
   
   const { data, createContent, status, error } = useApiFeatures();
   const [messages, setMessages] = useState([]);
@@ -451,6 +456,14 @@ export function NotebookInterface() {
     }
   };
 
+  const handleShortCreated = (videoUrl: string) => {
+    setGeneratedShortUrl(videoUrl);
+    toast({
+      title: "Short video created",
+      description: "Your short video has been generated successfully"
+    });
+  };
+
   return (
     <div className="min-h-screen bg-[#1A1B1E] text-white">
       <Walkthrough />
@@ -822,6 +835,84 @@ export function NotebookInterface() {
                 )}
               </div>
 
+              {/* Create Short Button */}
+              <div className="mt-4 mb-4">
+                <Button
+                  variant="outline"
+                  className="w-full text-gray-400 bg-transparent border-[#3B3D41] hover:bg-[#3B3D41]"
+                  onClick={() => setShowCreateShortDialog(true)}
+                  disabled={!audioUrl}
+                >
+                  <div className="flex items-center gap-2">
+                    <PlayCircle className="w-4 h-4" />
+                    <span>Create Short</span>
+                  </div>
+                </Button>
+              </div>
+
+              {/* Video Preview Section */}
+              {generatedShortUrl && (
+                <div className="mt-4 mb-4">
+                  <div className="bg-[#2B2D31] rounded-lg p-4">
+                    <h4 className="text-white text-sm font-medium mb-2">Generated Short Video</h4>
+                    <div className="relative aspect-video w-full bg-black rounded-lg overflow-hidden">
+                      <video 
+                        controls 
+                        src={generatedShortUrl} 
+                        className="w-full h-full object-contain"
+                        onClick={() => setShowVideoPreview(true)}
+                      >
+                        Your browser does not support the video element.
+                      </video>
+                    </div>
+                    <div className="mt-2 flex justify-between items-center">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-gray-400 hover:text-white"
+                        onClick={() => setShowVideoPreview(true)}
+                      >
+                        <PlayCircle className="w-4 h-4 mr-2" />
+                        Open in Full Screen
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-gray-400 hover:text-white"
+                        onClick={() => window.open(generatedShortUrl, '_blank')}
+                      >
+                        <Share2 className="w-4 h-4 mr-2" />
+                        Share
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Video Preview Modal */}
+              {showVideoPreview && generatedShortUrl && (
+                <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
+                  <div className="relative w-full max-w-4xl">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute -top-10 right-0 text-white hover:text-gray-300"
+                      onClick={() => setShowVideoPreview(false)}
+                    >
+                      <X className="w-6 h-6" />
+                    </Button>
+                    <video 
+                      controls 
+                      src={generatedShortUrl} 
+                      className="w-full rounded-lg"
+                      autoPlay
+                    >
+                      Your browser does not support the video element.
+                    </video>
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <h3
                   className="text-xs font-medium text-gray-400"
@@ -1072,6 +1163,13 @@ export function NotebookInterface() {
           isOpen={showUpload}
           onClose={() => setShowUpload(false)}
           onUploadComplete={handleUploadComplete}
+        />
+
+        <CreateShortDialog
+          isOpen={showCreateShortDialog}
+          onClose={() => setShowCreateShortDialog(false)}
+          onCreated={handleShortCreated}
+          defaultAudioUrl={audioUrl}
         />
       </div>
     </div>
