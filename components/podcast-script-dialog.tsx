@@ -61,11 +61,22 @@ export function PodcastScriptDialog({ isOpen, onClose, onCreated }: Props) {
         voice1,
         voice2,
       });
-      if (res.audio_url && onCreated) onCreated(res.audio_url);
-      toast({ title: 'Podcast created' });
-      onClose();
+      
+      if (res.finalResult?.audio_url) {
+        onCreated?.(res.finalResult.audio_url);
+        toast({ title: 'Podcast created' });
+        onClose();
+      } else if (res.error_message) {
+        throw new Error(res.error_message);
+      } else {
+        throw new Error('No audio URL received');
+      }
     } catch (e) {
-      toast({ title: 'Failed to create podcast', variant: 'destructive' });
+      toast({ 
+        title: 'Failed to create podcast', 
+        description: e instanceof Error ? e.message : 'An error occurred',
+        variant: 'destructive' 
+      });
     } finally {
       setLoading(false);
     }
