@@ -47,6 +47,8 @@ import {
 } from '@/components/ui/select';
 import { useVoices } from '@/hooks/use-voices';
 import { CreateShortDialog } from '@/components/create-short-dialog';
+import { PodcastScriptDialog } from '@/components/podcast-script-dialog';
+import { SeparateSpeakersDialog } from '@/components/separate-speakers-dialog';
 
 export function NotebookInterface() {
   const staticAudioUrl = "https://autocontentapi.blob.core.windows.net/audios/67fa9f5b-3d38-4382-abf8-13f7d103d817_20250224092847.wav";
@@ -56,6 +58,8 @@ export function NotebookInterface() {
   const [showDeepDiveDialog, setShowDeepDiveDialog] = useState(false);
   const [showBriefingDialog, setShowBriefingDialog] = useState(false);
   const [showStudyGuideDialog, setShowStudyGuideDialog] = useState(false);
+  const [showPodcastScriptDialog, setShowPodcastScriptDialog] = useState(false);
+  const [showSeparateSpeakersDialog, setShowSeparateSpeakersDialog] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
   const [progress, setProgress] = useState(0);
   const [showGenerationDialog, setShowGenerationDialog] = useState(false);
@@ -464,6 +468,22 @@ export function NotebookInterface() {
     });
   };
 
+  const handlePodcastCreated = (audioUrl: string) => {
+    setAudioUrl(audioUrl);
+    setShowAudioDialog(true);
+    toast({
+      title: "Podcast Created",
+      description: "Your podcast has been created successfully.",
+    });
+  };
+
+  const handleSpeakersSeparated = (requestId: string) => {
+    toast({
+      title: "Success",
+      description: "Audio separation process has started. You will be notified when it's complete.",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-[#1A1B1E] text-white">
       <Walkthrough />
@@ -584,7 +604,7 @@ export function NotebookInterface() {
           <div className="p-4">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <h2 className="text-sm font-medium text-white">Studio2</h2>
+                <h2 className="text-sm font-medium text-white">Studio</h2>
               </div>
               <Button
                 variant="ghost"
@@ -848,6 +868,31 @@ export function NotebookInterface() {
                     <span>Create Short</span>
                   </div>
                 </Button>
+
+                {/* Create Podcast from Script Button */}
+                <Button
+                  variant="outline"
+                  className="w-full text-gray-400 bg-transparent border-[#3B3D41] hover:bg-[#3B3D41] mt-2"
+                  onClick={() => setShowPodcastScriptDialog(true)}
+                >
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="w-4 h-4" />
+                    <span>Create Podcast from Script</span>
+                  </div>
+                </Button>
+
+                {/* Separate Speakers Audio Button */}
+                <Button
+                  variant="outline"
+                  className="w-full text-gray-400 bg-transparent border-[#3B3D41] hover:bg-[#3B3D41] mt-2"
+                  onClick={() => setShowSeparateSpeakersDialog(true)}
+                  disabled={!audioUrl}
+                >
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="w-4 h-4" />
+                    <span>Separate Speakers Audio</span>
+                  </div>
+                </Button>
               </div>
 
               {/* Video Preview Section */}
@@ -1026,6 +1071,8 @@ export function NotebookInterface() {
           progress={progress}
         />
 
+       
+
         <ContentGenerationDialog
           isOpen={showGenerationDialog}
           onClose={() => setShowGenerationDialog(false)}
@@ -1033,7 +1080,20 @@ export function NotebookInterface() {
           contentType={selectedContentType}
           isGenerating={isGenerating}
           progress={generationProgress}
-        />
+        >
+          <div className="flex flex-col gap-2">
+            <Button
+              variant="outline"
+              className="w-full text-gray-400 bg-transparent border-[#3B3D41] hover:bg-[#3B3D41]"
+              onClick={() => setShowPodcastScriptDialog(true)}
+            >
+              <div className="flex items-center gap-2">
+                <MessageSquare className="w-4 h-4" />
+                <span>Create Podcast from Script</span>
+              </div>
+            </Button>
+          </div>
+        </ContentGenerationDialog>
 
         <BriefingDocDialog
           isOpen={showBriefingDialog}
@@ -1169,6 +1229,19 @@ export function NotebookInterface() {
           isOpen={showCreateShortDialog}
           onClose={() => setShowCreateShortDialog(false)}
           onCreated={handleShortCreated}
+          defaultAudioUrl={audioUrl}
+        />
+
+        <PodcastScriptDialog
+          isOpen={showPodcastScriptDialog}
+          onClose={() => setShowPodcastScriptDialog(false)}
+          onCreated={handlePodcastCreated}
+        />
+
+        <SeparateSpeakersDialog
+          isOpen={showSeparateSpeakersDialog}
+          onClose={() => setShowSeparateSpeakersDialog(false)}
+          onSeparated={handleSpeakersSeparated}
           defaultAudioUrl={audioUrl}
         />
       </div>
