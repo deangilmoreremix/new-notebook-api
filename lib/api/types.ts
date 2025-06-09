@@ -244,7 +244,13 @@ export interface ProcessResponse {
   content?: string;
   error?: string;
   audio_url?: string;
+  finalResult?: {
+    audio_url?: string;
+    content?: string;
+  };
+  error_message?: string;
 }
+
 export interface CreatePodcastCustomVoicesRequest {
   resources: { content: string; type: string }[];
   text: string;
