@@ -218,7 +218,6 @@ export function DeepDiveDialog({
 
       onClose();
     } catch (error) {
-      console.error('Deep dive generation error:', error);
       toast({
         title: "Generation failed",
         description: error instanceof Error ? error.message : "Failed to generate deep dive",

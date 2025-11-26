@@ -1,15 +1,22 @@
-// import { GoogleGenerativeAI } from "@google/generative-ai";
-
-// const genAI = new GoogleGenerativeAI("AIzaSyBZ5NQ3dF5sdMBSjfkD6Oejw9VRhPTSUdc");
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { cookies } from 'next/headers';
 
+const getGoogleApiKey = () => {
+  const apiKey = getGoogleApiKey();
+  if (!apiKey) {
+    throw new Error('GOOGLE_API_KEY environment variable is required');
+  }
+  return apiKey;
+};
+
 export const geminiService = {
   async analyzeSentiment(text: string) {
-    console.log("Call geminiService analyzeSentiment");
+    const apiKey = getGoogleApiKey();
+    if (!apiKey) {
+      throw new Error('GOOGLE_API_KEY environment variable is required');
+    }
 
-    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || 'AIzaSyBZ5NQ3dF5sdMBSjfkD6Oejw9VRhPTSUdc');
-    console.log("genAI:", genAI);
+    const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const prompt = `Analyze the sentiment of the following text. Return a JSON object with:
       - sentiment (positive/negative/neutral)
@@ -24,7 +31,6 @@ export const geminiService = {
       const response = await result.response;
       const textResponse = await response.text();
 
-      console.log("Raw API Response:", textResponse);
 
       // Remove Markdown formatting if present
       let jsonString = textResponse
@@ -35,14 +41,17 @@ export const geminiService = {
 
       return JSON.parse(jsonString);
     } catch (error) {
-      console.error("Sentiment analysis error:", error);
       throw new Error("Failed to process sentiment analysis");
     }
   },
 
   async extractKeywords(text: string, options: { maxKeywords: number }) {
     try {
-      const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || 'AIzaSyBZ5NQ3dF5sdMBSjfkD6Oejw9VRhPTSUdc');
+      const apiKey = getGoogleApiKey();
+      if (!apiKey) {
+        throw new Error('GOOGLE_API_KEY environment variable is required');
+      }
+      const genAI = new GoogleGenerativeAI(apiKey);
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
       const prompt = `Extract the ${options.maxKeywords} most important keywords from the text. For each keyword, provide its relevance score (0-1) and category. Return as a JSON object with a 'keywords' array containing objects with: 'term', 'relevance', and 'category'.
@@ -53,10 +62,8 @@ export const geminiService = {
 
         Text to analyze: ${text}`;
 
-      console.log("Generated Prompt:", prompt);
 
       const result = await model.generateContent(prompt);
-      console.log("Raw API Response:", result);
 
       if (!result || !result.response) {
         throw new Error("No response received from the model");
@@ -64,15 +71,12 @@ export const geminiService = {
 
       const response = await result.response;
       const rawText = response.text().trim();
-      console.log("Response Text:", rawText);
 
       const cleanJson = rawText.replace(/^```json\n|\n```$/g, "");
       const parsedData = JSON.parse(cleanJson);
-      console.log("Parsed JSON Data:", parsedData);
 
       return parsedData;
     } catch (error) {
-      console.error("Error extracting keywords:", error);
       return {
         error:
           error instanceof Error ? error.message : "Unknown error occurred",
@@ -82,9 +86,11 @@ export const geminiService = {
 
   async extractEntities(text: string) {
     try {
-      console.log("Extracting entities for text:", text);
-
-      const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || 'AIzaSyBZ5NQ3dF5sdMBSjfkD6Oejw9VRhPTSUdc');
+      const apiKey = getGoogleApiKey();
+      if (!apiKey) {
+        throw new Error('GOOGLE_API_KEY environment variable is required');
+      }
+      const genAI = new GoogleGenerativeAI(apiKey);
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
       const prompt = `Extract and classify named entities from the text. For each entity, provide:
@@ -98,43 +104,39 @@ export const geminiService = {
   
       Text to analyze: ${text}`;
 
-      console.log("Sending prompt to model...");
 
       const result = await model.generateContent(prompt);
-      console.log("Received response:", result);
 
       const response = await result.response;
       let responseText = response.text();
 
-      console.log("Raw extracted text response:", responseText);
 
       responseText = responseText.trim();
       responseText = responseText
         .replace(/^```(?:json)?\n/, "")
         .replace(/\n```$/, "");
 
-      console.log("Cleaned JSON response:", responseText);
 
       let parsedResponse;
       try {
         parsedResponse = JSON.parse(responseText);
       } catch (parseError) {
-        console.error("JSON parsing error:", parseError);
-        console.error("Raw text that caused the issue:", responseText);
         return { error: "Invalid JSON format", details: parseError };
       }
 
-      console.log("Parsed JSON response:", parsedResponse);
 
       return parsedResponse;
     } catch (error) {
-      console.error("Error extracting entities:", error);
       return { error: "Failed to extract entities", details: error };
     }
   },
 
   async analyzeReadability(text: string) {
-    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || 'AIzaSyBZ5NQ3dF5sdMBSjfkD6Oejw9VRhPTSUdc');
+    const apiKey = getGoogleApiKey();
+    if (!apiKey) {
+      throw new Error('GOOGLE_API_KEY environment variable is required');
+    }
+    const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `Perform a comprehensive readability analysis including:
@@ -160,14 +162,12 @@ export const geminiService = {
 
     try {
       const result = await model.generateContent(prompt);
-      console.log("API Result:", result);
 
       if (!result || !result.response) {
         throw new Error("Invalid response from the model");
       }
 
       const response = await result.response;
-      console.log("API Response analyzeReadability:", response);
 
       if (!response.text) {
         throw new Error("No text returned in the response");
@@ -175,18 +175,13 @@ export const geminiService = {
 
       const responseText = response.text().trim();
       const cleanedResponse = responseText.replace(/```json|```/g, "");
-      console.log("Cleaned Response:", cleanedResponse);
 
       const parsedResponse = JSON.parse(cleanedResponse);
-      console.log("Parsed Response:", parsedResponse);
 
       return parsedResponse;
     } catch (error: unknown) {
-      console.error("Error in analyzeReadability:", error);
       if (error instanceof SyntaxError) {
-        console.error("JSON Parsing error:", error.message);
       } else if (error instanceof Error) {
-        console.error("Unexpected error:", error.message);
       }
       return {
         error: true,
@@ -197,7 +192,11 @@ export const geminiService = {
   },
 
   async extractArgumentation(text: string) {
-    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || 'AIzaSyBZ5NQ3dF5sdMBSjfkD6Oejw9VRhPTSUdc');
+    const apiKey = getGoogleApiKey();
+    if (!apiKey) {
+      throw new Error('GOOGLE_API_KEY environment variable is required');
+    }
+    const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `Analyze the argumentative structure including:
@@ -227,12 +226,10 @@ export const geminiService = {
 
     try {
       const result = await model.generateContent(prompt);
-      console.log("Received response:", result);
 
       const response = await result.response;
       let responseText = response.text();
 
-      console.log("Raw extracted text response:", responseText);
 
       responseText = responseText.trim();
       if (responseText.startsWith("```json")) {
@@ -251,18 +248,13 @@ export const geminiService = {
         ? responseText.substring(4).trim()
         : responseText;
 
-      console.log("Cleaned JSON response:", jsonFixed);
 
       const parsedResponse = JSON.parse(jsonFixed);
-      console.log("Parsed JSON response:", parsedResponse);
 
       return parsedResponse;
     } catch (error: unknown) {
-      console.error("Error in extractArgumentation:", error);
       if (error instanceof SyntaxError) {
-        console.error("JSON Parsing error:", error.message);
       } else if (error instanceof Error) {
-        console.error("Unexpected error:", error.message);
       }
       return {
         error: true,
@@ -273,7 +265,7 @@ export const geminiService = {
   },
 
   async generateStudyGuide(text: string) {
-    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || 'AIzaSyBZ5NQ3dF5sdMBSjfkD6Oejw9VRhPTSUdc');
+    const genAI = new GoogleGenerativeAI(getGoogleApiKey());
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `Create a comprehensive study guide including:
@@ -310,7 +302,7 @@ export const geminiService = {
     text: string,
     options: { count: number; complexity: string }
   ) {
-    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || 'AIzaSyBZ5NQ3dF5sdMBSjfkD6Oejw9VRhPTSUdc');
+    const genAI = new GoogleGenerativeAI(getGoogleApiKey());
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `Create ${options.count} flashcards at ${options.complexity} complexity level from the text. Return as a JSON array of objects with 'front' and 'back' properties.
@@ -327,12 +319,10 @@ export const geminiService = {
     options: { count: number; type: string }
   ) {
     try {
-      console.log("Calling generateQuestions with text length:", text.length);
-      const apiKey = process.env.GOOGLE_API_KEY || 'AIzaSyBZ5NQ3dF5sdMBSjfkD6Oejw9VRhPTSUdc';
+      const apiKey = getGoogleApiKey();
       if (!apiKey) {
         throw new Error("GOOGLE_API_KEY is not set");
       }
-      console.log("API Key:", apiKey);
 
       const genAI = new GoogleGenerativeAI(apiKey);
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // Using flash for higher quota
@@ -340,7 +330,6 @@ export const geminiService = {
 
       Text to use: ${text.slice(0, 30000)}`; // Limit text to avoid token issues
 
-      console.log("Prompt sent to Gemini:", prompt);
 
       const result = await model.generateContent(prompt);
       if (!result || !result.response) {
@@ -349,7 +338,6 @@ export const geminiService = {
 
       const response = await result.response;
       let responseText = await response.text();
-      console.log("Raw response from Gemini:", responseText);
 
       // Clean Markdown formatting
       responseText = responseText
@@ -359,7 +347,6 @@ export const geminiService = {
         .replace(/\n```$/, '') // Remove ending ```
         .trim();
 
-      console.log("Cleaned response:", responseText);
 
       // Validate JSON
       if (!responseText.startsWith('[') && !responseText.startsWith('{')) {
@@ -367,7 +354,6 @@ export const geminiService = {
       }
 
       const parsedResponse = JSON.parse(responseText);
-      console.log("Parsed JSON response:", parsedResponse);
 
       // Validate expected structure
       if (!Array.isArray(parsedResponse)) {
@@ -376,7 +362,6 @@ export const geminiService = {
 
       return parsedResponse;
     } catch (error) {
-      console.error("Error in generateQuestions:", error);
       return {
         error: true,
         message: error instanceof Error ? error.message : "Failed to generate questions",
@@ -385,7 +370,7 @@ export const geminiService = {
   },
 
   async compareDocuments(texts: string[]) {
-    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || 'AIzaSyBZ5NQ3dF5sdMBSjfkD6Oejw9VRhPTSUdc');
+    const genAI = new GoogleGenerativeAI(getGoogleApiKey());
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `Compare the provided texts and analyze their similarities and differences. Return a JSON object with: commonThemes, uniquePoints, and recommendations.
@@ -398,7 +383,7 @@ export const geminiService = {
   },
 
   async generateTimeline(text: string) {
-    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || 'AIzaSyBZ5NQ3dF5sdMBSjfkD6Oejw9VRhPTSUdc');
+    const genAI = new GoogleGenerativeAI(getGoogleApiKey());
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `Create a chronological timeline of events from the text. Return as a JSON array of objects with 'date', 'event', and 'description' properties.
@@ -418,7 +403,7 @@ export const geminiService = {
       format: string;
     }
   ) {
-    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || 'AIzaSyBZ5NQ3dF5sdMBSjfkD6Oejw9VRhPTSUdc');
+    const genAI = new GoogleGenerativeAI(getGoogleApiKey());
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `Create a deep dive discussion between two experts (${options.host1} and ${options.host2}) about the following content.
@@ -457,13 +442,11 @@ export const geminiService = {
 
   async generateCitations(text: string, style: string = "apa") {
     try {
-      console.log("Generating citations with style:", style);
 
-      const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || 'AIzaSyBZ5NQ3dF5sdMBSjfkD6Oejw9VRhPTSUdc');
+      const genAI = new GoogleGenerativeAI(getGoogleApiKey());
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       const prompt = `Extract and format citations from the text in ${style} style. Return as a JSON array of citation strings.\n\nText to analyze: ${text}`;
 
-      console.log("Prompt sent to Gemini:", prompt);
 
       const result = await model.generateContent(prompt);
       if (!result || !result.response) {
@@ -473,24 +456,20 @@ export const geminiService = {
       const response = await result.response;
       const responseText = response.text();
 
-      console.log("Raw response from Gemini:", responseText);
 
       return JSON.parse(responseText);
     } catch (error) {
-      console.error("Error in generateCitations:", error);
       return { error: "Failed to generate citations. Please try again later." };
     }
   },
 
   async generateSemanticAnalysis(text: string) {
     try {
-      console.log("Calling Semantic Analysis");
 
-      const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || 'AIzaSyBZ5NQ3dF5sdMBSjfkD6Oejw9VRhPTSUdc');
+      const genAI = new GoogleGenerativeAI(getGoogleApiKey());
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       const prompt = `Analyze the semantic structure of the given text. Identify key meanings, relationships between words, and contextual interpretations. Summarize how different terms and phrases interact to form meaning.\n\nText to analyze: ${text}`;
 
-      console.log("Prompt sent to Gemini:", prompt);
 
       const result = await model.generateContent(prompt);
       if (!result || !result.response) {
@@ -500,7 +479,6 @@ export const geminiService = {
       const response = await result.response;
       const responseText = await response.text();
 
-      console.log("Raw response from Gemini:", responseText);
 
       try {
         return JSON.parse(responseText);
@@ -512,25 +490,21 @@ export const geminiService = {
           .replace(/\*/g, "")
           .trim();
 
-        console.log("Cleaned semantic response:", cleanedResponse);
 
         return { text: cleanedResponse };
       }
     } catch (error) {
-      console.error("Error in generateSemanticAnalysis:", error);
       return { error: "Failed to analyze semantics. Please try again later." };
     }
   },
 
   async generateConceptsExtraction(text: string) {
     try {
-      console.log("Calling Concepts Extraction");
 
-      const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || 'AIzaSyBZ5NQ3dF5sdMBSjfkD6Oejw9VRhPTSUdc');
+      const genAI = new GoogleGenerativeAI(getGoogleApiKey());
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       const prompt = `Extract and summarize the core concepts from the given text. Identify the fundamental ideas and provide a brief explanation of their relevance.\n\nText to analyze: ${text}`;
 
-      console.log("Prompt sent to Gemini:", prompt);
 
       const result = await model.generateContent(prompt);
       if (!result || !result.response) {
@@ -540,7 +514,6 @@ export const geminiService = {
       const response = await result.response;
       const responseText = await response.text();
 
-      console.log("Raw response from Gemini:", responseText);
 
       try {
         return JSON.parse(responseText);
@@ -552,28 +525,23 @@ export const geminiService = {
           .replace(/\*/g, "")
           .trim();
 
-        console.log("Cleaned semantic response:", cleanedResponse);
 
         return { text: cleanedResponse };
       }
     } catch (error) {
-      console.error("Error in generateConceptsExtraction:", error);
       return { error: "Failed to extract concepts. Please try again later." };
     }
   },
 
   async generateTextComparison(text: string) {
     try {
-      console.log("Calling Text Comparison");
 
-      const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || 'AIzaSyBZ5NQ3dF5sdMBSjfkD6Oejw9VRhPTSUdc');
+      const genAI = new GoogleGenerativeAI(getGoogleApiKey());
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       const prompt = `Compare two pieces of text and highlight the differences, similarities, and contextual changes. Identify changes in meaning, tone, and factual accuracy. Text to analyze: ${text}`;
 
-      console.log("Prompt sent to Gemini:", prompt);
 
       const result = await model.generateContent(prompt);
-      console.log("Raw result from Gemini:", result);
 
       if (!result || !result.response) {
         throw new Error("Invalid response from Gemini model");
@@ -582,7 +550,6 @@ export const geminiService = {
       const response = await result.response;
       const responseText = await response.text();
 
-      console.log("Raw response from Gemini:", responseText);
 
       try {
         return JSON.parse(responseText);
@@ -594,27 +561,23 @@ export const geminiService = {
           .replace(/\*/g, "")
           .trim();
 
-        console.log("Cleaned comparison response:", cleanedResponse);
 
         return { text: cleanedResponse };
       }
     } catch (error) {
-      console.error("Error in generateTextComparison:", error);
       return { error: "Failed to compare texts. Please try again later." };
     }
   },
 
   async generateSummary(userInput: string) {
     try {
-      console.log("Calling Source Content Generation");
 
-      const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || 'AIzaSyBZ5NQ3dF5sdMBSjfkD6Oejw9VRhPTSUdc');
+      const genAI = new GoogleGenerativeAI(getGoogleApiKey());
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       const prompt = `Generate a detailed source description with 5-6 lines of content based on the following input. The description should be comprehensive yet concise, covering key aspects of the source material. Each line should focus on a different important aspect or feature.
 
       User Input: ${userInput}`;
       
-      console.log("Prompt sent to Gemini:", prompt);
 
       const result = await model.generateContent(prompt);
       if (!result || !result.response) {
@@ -624,7 +587,6 @@ export const geminiService = {
       const response = await result.response;
       const responseText = await response.text();
 
-      console.log("Raw response from Gemini:", responseText);
 
       try {
         return JSON.parse(responseText);
@@ -634,12 +596,10 @@ export const geminiService = {
           .replace(/\*/g, "")
           .trim();
 
-        console.log("Cleaned source response:", cleanedResponse);
 
         return { text: cleanedResponse };
       }
     } catch (error) {
-      console.error("Error in generateSummary:", error);
       return {
         error: "Failed to generate source content. Please try again later.",
       };

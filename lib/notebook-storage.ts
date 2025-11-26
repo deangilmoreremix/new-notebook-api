@@ -13,7 +13,6 @@ export const notebookStorage = {
       const stored = localStorage.getItem(STORAGE_KEY);
       return stored ? JSON.parse(stored) : [];
     } catch (err) {
-      console.error('Failed to load notebooks:', err);
       return [];
     }
   },
@@ -22,7 +21,6 @@ export const notebookStorage = {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(notebooks));
     } catch (err) {
-      console.error('Failed to save notebooks:', err);
     }
   },
   add(title: string) {

@@ -119,7 +119,6 @@ export function SourceOverview({ source, onSaveNote, onClose }: SourceOverviewPr
         description: mockData ? "Using offline data for analysis" : "Source has been analyzed successfully"
       });
     } catch (error) {
-      console.error('Failed to analyze source:', error);
       toast({
         title: "Analysis failed",
         description: "Failed to analyze the source. Please try again.",

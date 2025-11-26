@@ -89,7 +89,6 @@ export function useDeepDive() {
 
         return result;
       } catch (error) {
-        console.warn('AutoContent API failed, trying Gemini:', error);
         
         // Try Gemini
         const combinedText = sources.join('\n\n');

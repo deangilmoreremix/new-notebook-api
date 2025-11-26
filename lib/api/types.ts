@@ -87,7 +87,6 @@ export const validateApiConfig = () => {
 // API Error Handling
 export const handleApiError = (error: unknown, context?: string): never => {
   if (error instanceof Error) {
-    console.error(`API Error (${context || 'unknown context'}):`, {
       message: error.message,
       stack: error.stack,
       context
@@ -96,11 +95,9 @@ export const handleApiError = (error: unknown, context?: string): never => {
   }
 
   if (typeof error === 'string') {
-    console.error(`API Error (${context || 'unknown context'}):`, error);
     throw new Error(error);
   }
 
-  console.error(`Unknown API Error (${context || 'unknown context'}):`, error);
   throw new Error('An unexpected error occurred');
 };
 

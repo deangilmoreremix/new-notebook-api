@@ -142,13 +142,11 @@ export const autoContentApi = {
         headers,
         body: JSON.stringify(payload),
       }).catch((error) => {
-        console.error("Network error:", error);
         throw new Error(`Network error: ${error.message}`);
       });
 
       if (!response.ok) {
         const errorData = await response.text();
-        console.error("API error response:", errorData);
         throw new Error(`AutoContent API error: ${errorData}`);
       }
 
@@ -167,10 +165,8 @@ export const autoContentApi = {
         }
         throw new Error("Content generation failed or timed out");
       }
-      console.log("Content generation", data);
       return data;
     } catch (error) {
-      console.error("Deep dive generation error:", {
         error: error instanceof Error ? error.message : "Unknown error",
         timestamp: new Date().toISOString(),
         resourceCount: resources.length,
@@ -181,7 +177,6 @@ export const autoContentApi = {
 
   async modifyPodcast(request: ModifyPodcastRequest): Promise<ModifyPodcastResponse> {
     try {
-      console.log("Sending modifyPodcast request:", request);
   
       const response = await fetch(`/api/modifypodcast`, {
         method: "POST",
@@ -193,26 +188,21 @@ export const autoContentApi = {
         body: JSON.stringify(request),
       });
   
-      console.log("Received response:", response);
   
       if (!response.ok) {
         const errorData = await response.text();
-        console.error("Error response data:", errorData);
         throw new Error(`Failed to modify podcast: ${errorData}`);
       }
   
       const data = await response.json();
-      console.log("Parsed response data:", data);
   
       // If the response contains a request_id, start polling
       if (data.request_id) {
-        console.log("Starting polling for request_id:", data.request_id);
         return await this.pollStatus(data.request_id);
       }
   
       return data;
     } catch (error) {
-      console.error("Podcast modification error:", {
         message: error instanceof Error ? error.message : "Unknown error",
         stack: error instanceof Error ? error.stack : null,
       });
@@ -305,7 +295,6 @@ export const autoContentApi = {
         request_id: data.initialResponse?.request_id
       };
     } catch (error) {
-      console.error('Error in createShort:', error);
       throw error;
     }
   },
@@ -413,7 +402,6 @@ export const autoContentApi = {
         },
       };
     } catch (error) {
-      console.error("Voice cloning error:", {
         error: error instanceof Error ? error.message : "Unknown error",
         fileName: audioFile.name,
         fileSize: audioFile.size,
@@ -426,10 +414,8 @@ export const autoContentApi = {
 
   async getAvailableVoices(): Promise<Voice[]> {
     try {
-      console.log("getAvailableVoices() - Start");
 
       if (!API_KEY) {
-        console.warn("API key missing - using default voices");
         return this.getDefaultVoices();
       }
 
@@ -441,40 +427,33 @@ export const autoContentApi = {
       try {
         // Retry loop
         while (attempt < maxRetries) {
-          console.log(`Attempt ${attempt + 1} to fetch voices`);
 
           // Add exponential backoff delay after first attempt
           if (attempt > 0) {
             const delay = retryDelay * Math.pow(2, attempt - 1);
-            console.log(`Retry delay: ${delay}ms`);
             await new Promise((resolve) => setTimeout(resolve, delay));
           }
 
           try {
             // Check network connectivity
             if (typeof window !== "undefined" && !window.navigator.onLine) {
-              console.warn("No internet connection, using default voices");
               return this.getDefaultVoices();
             }
 
-            console.log("Fetching voices from API...");
 
             const response = await fetch("/api/voices", {
               signal: AbortSignal.timeout(10000),
             });
 
-            console.log(`Response Status: ${response.status}`);
 
             if (!response.ok) {
               const errorText = await response.text();
-              console.warn(
                 `Voice API error: ${response.status} - ${errorText}`
               );
               return this.getDefaultVoices();
             }
 
             const voices = await response.json();
-            console.log("API Response Data:", voices);
 
             // Ensure voice data format is correct
             const voiceData = Array.isArray(voices) ? voices : voices?.data;
@@ -483,10 +462,8 @@ export const autoContentApi = {
               throw new Error("Invalid voice data format");
             }
 
-            // console.log(`Total voices received: ${voiceData.length}`);
 
             // // Log the raw response data
-            // console.log("Raw Voices Data:", JSON.stringify(voiceData, null, 2));
 
             // Process voices
             const englishVoices = voiceData
@@ -510,7 +487,6 @@ export const autoContentApi = {
                 };
 
                 // Log individual voice to check if preview_url is present
-                // console.log(
                 //   `Processed Voice - Name: ${formattedVoice.name}, Preview URL: ${formattedVoice.preview_url}`
                 // );
 
@@ -518,7 +494,6 @@ export const autoContentApi = {
               })
               .filter((voice) => {
                 if (!voice.name || !voice.id) {
-                  console.warn(
                     `Skipping invalid voice: ${JSON.stringify(voice)}`
                   );
                   return false;
@@ -527,7 +502,6 @@ export const autoContentApi = {
               });
 
             // Log final filtered list
-            // console.log(
             //   "Final Filtered Voices:",
             //   JSON.stringify(englishVoices, null, 2)
             // );
@@ -537,7 +511,6 @@ export const autoContentApi = {
               (voice) => !voice.preview_url
             );
             if (voicesWithoutPreview.length > 0) {
-              console.warn(
                 "Some voices are missing preview URLs:",
                 JSON.stringify(voicesWithoutPreview, null, 2)
               );
@@ -548,10 +521,8 @@ export const autoContentApi = {
               throw new Error("No valid voices found");
             }
 
-            console.log("Returning valid English voices");
             return englishVoices;
           } catch (error) {
-            console.error("Error fetching voices:", error);
 
             const isNetworkError =
               error instanceof Error &&
@@ -573,7 +544,6 @@ export const autoContentApi = {
             }
 
             // Wait before retrying
-            console.log("Retrying API call...");
             await new Promise((resolve) =>
               setTimeout(resolve, retryDelay * Math.pow(2, attempt))
             );
@@ -583,14 +553,11 @@ export const autoContentApi = {
         throw new Error("Failed to fetch voices");
       } catch (error) {
         // If all retries failed, fall back to default voices
-        console.warn("Falling back to default voices due to error:", error);
         return this.getDefaultVoices();
       }
     } catch (error) {
-      console.error("Voice initialization error:", error);
       return this.getDefaultVoices();
     } finally {
-      console.log("getAvailableVoices() - End");
     }
   },
 
@@ -727,7 +694,6 @@ export const autoContentApi = {
 
       return handleApiResponse(response, "uploadSource");
     } catch (error) {
-      console.error("Source upload error:", error);
       return handleApiError(error, "uploadSource");
     }
   },
@@ -787,7 +753,6 @@ export const autoContentApi = {
 
       return result;
     } catch (error) {
-      console.error("Content processing error:", error);
       return handleApiError(error, "processContent");
     }
   },
@@ -814,7 +779,6 @@ export const autoContentApi = {
 
       return handleApiResponse(response, "analyzeSource");
     } catch (error) {
-      console.error("Source analysis error:", error);
       return handleApiError(error, "analyzeSource");
     }
   },
@@ -838,7 +802,6 @@ export const autoContentApi = {
 
       return handleApiResponse(response, "analyzeContentSentiment");
     } catch (error) {
-      console.error("Sentiment analysis error:", error);
       return handleApiError(error, "analyzeContentSentiment");
     }
   },
@@ -859,7 +822,6 @@ export const autoContentApi = {
 
       return handleApiResponse(response, "extractArgumentation");
     } catch (error) {
-      console.error("Argumentation extraction error:", error);
       return handleApiError(error, "extractArgumentation");
     }
   },
@@ -916,7 +878,6 @@ export const autoContentApi = {
       }
       return response.json();
     } catch (error) {
-      console.error('Error fetching avatars:', error);
       throw error;
     }
   },

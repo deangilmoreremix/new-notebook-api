@@ -15,24 +15,20 @@ async function checkStatusWithPolling(requestId) {
         }
       });
       const data = await response.json();
-      console.log("Polling Status:", data);
       
       // If status is complete, return the data
       if (data.status === 100) {
-        console.log("✅ Request is complete:", data);
         return data;
       }
       
       // Check if more than 3 minutes have elapsed
       if (Date.now() - startTime > 180000) { // 3 minutes timeout
-        console.log("⏳ Request pending for more than 3 minutes.");
         return {
           status: data.status,
           message: "Your request has been pending for over 3 minutes. Please check back later."
         };
       }
     } catch (error) {
-      console.error("Error checking status:", error);
     }
     await delay(5000); // Wait for 5 seconds before next check
   }
@@ -41,8 +37,6 @@ async function checkStatusWithPolling(requestId) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    console.log("Received body:", body);
-    console.log(API_KEY, "key");
 
     // Validate required fields
     const { audioUrl, voice1, voice2 } = body;
@@ -71,7 +65,6 @@ export async function POST(request) {
     });
 
     const data = await response.json();
-    console.log("API Response Data:", data);
     
     if (!data.request_id) {
       return NextResponse.json({ errorMessage: "No request ID received." }, { status: 400 });
@@ -87,7 +80,6 @@ export async function POST(request) {
     }, { status: 200 });
 
   } catch (error) {
-    console.error('Error modifying podcast:', error);
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }

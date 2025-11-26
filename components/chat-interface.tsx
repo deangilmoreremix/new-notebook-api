@@ -51,13 +51,11 @@ export function ChatInterface({
 
     useEffect(() => {
     if (generatedSummary) {
-      console.log("Generated content received:", generatedSummary.content);
       setGeneratedSummary(generatedSummary.summary || "No summary available");
     }
   }, [generatedSummary]);
 
   useEffect(() => {
-    console.log("Generated summary set to:", generatedSummary);
   }, [generatedSummary]);
 
 
@@ -107,7 +105,6 @@ export function ChatInterface({
       }
 
     } catch (error) {
-      console.error('Error sending message:', error);
       setMessages(prev => [...prev, {
         text: 'An error occurred while processing your request.',
         sender: 'assistant',

@@ -81,7 +81,6 @@ export function ContentGenerationDialog({
             }
           }
         } catch (error) {
-          console.error('Failed to load voices:', error);
           toast({
             title: "Voice loading failed",
             description: "Using default voices",

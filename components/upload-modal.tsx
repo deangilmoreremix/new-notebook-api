@@ -240,7 +240,6 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
 
         onClose();
       } catch (error) {
-        console.error('Failed to generate overview:', error);
 
         // Save source even if analysis fails
         const sources = storageService.loadSources();
@@ -294,7 +293,6 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
         onClose();
       }
     } catch (error) {
-      console.error('Upload error:', error);
       toast({
         title: "Upload failed",
         description: "An error occurred while uploading your content",

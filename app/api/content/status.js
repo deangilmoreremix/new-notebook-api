@@ -10,7 +10,6 @@ export async function GET() {
   }
 
   try {
-    console.log("Call status")
     const response = await fetch(API_URL, {
       method: 'GET',
       headers: {

@@ -103,7 +103,6 @@ interface ApiError extends Error {
 const handleApiError = (error: unknown, context?: string): never => {
   // If it's already an Error instance, just throw it
   if (error instanceof Error) {
-    console.error(`API Error (${context || 'unknown context'}):`, {
       message: error.message,
       stack: error.stack,
       context
@@ -113,12 +112,10 @@ const handleApiError = (error: unknown, context?: string): never => {
 
   // If it's a string, wrap it in an Error
   if (typeof error === 'string') {
-    console.error(`API Error (${context || 'unknown context'}):`, error);
     throw new Error(error);
   }
 
   // Otherwise create a generic error
-  console.error(`Unknown API Error (${context || 'unknown context'}):`, error);
   throw new Error('An unexpected error occurred. Please try again later.');
 };
 
@@ -198,7 +195,6 @@ export const autoContentApi = {
 
       return data;
     } catch (error) {
-      console.error('AutoContent API error:', error);
       throw error;
     }
   },
@@ -690,7 +686,6 @@ export const autoContentApi = {
         if (process.env.NODE_ENV !== 'development') {
           throw new Error('Invalid API configuration');
         }
-        console.warn('Using mock data in development mode');
         return {
           data: {
             contents: [],
@@ -702,7 +697,6 @@ export const autoContentApi = {
 
       // Check network connectivity
       if (typeof navigator !== 'undefined' && !navigator.onLine) {
-        console.warn('No internet connection - Using offline mode');
         return {
           data: {
             contents: [],
@@ -716,7 +710,6 @@ export const autoContentApi = {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => {
         controller.abort();
-        console.warn('Request timed out - Using offline mode');
       }, 10000); // 10 second timeout
 
       const response = await fetch(`${API_URL}/studio/data`, {
@@ -733,7 +726,6 @@ export const autoContentApi = {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('API Error Response:', {
           status: response.status || 'unknown',
           statusText: response.statusText || 'No status text',
           body: errorText || 'No error text'
@@ -745,7 +737,6 @@ export const autoContentApi = {
 
       // Enhanced response validation
       if (!data || typeof data !== 'object' || !('contents' in data)) {
-        console.warn('Invalid response structure - Using default values');
         return {
           data: {
             contents: [],
@@ -772,7 +763,6 @@ export const autoContentApi = {
         offline: !navigator.onLine
       };
 
-      console.error('Studio data fetch error:', {
         ...errorDetails,
         stack: error instanceof Error ? error.stack : undefined
       });
@@ -783,7 +773,6 @@ export const autoContentApi = {
         error.name === 'AbortError' || // Timeout
         !navigator.onLine // Offline
       ) {
-        console.warn('Network error - Using offline mode');
         return {
           data: {
             contents: [],

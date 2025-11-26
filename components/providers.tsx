@@ -23,7 +23,6 @@ export function Providers({ children }: ProvidersProps) {
     };
 
     const handleOffline = () => {
-      console.warn('Network connection lost');
     };
 
     window.addEventListener('online', handleOnline);

@@ -42,7 +42,6 @@ export function CreateShortDialog({ isOpen, onClose, onCreated, defaultAudioUrl 
         const response = await autoContentApi.getAvatars();
         setAvatars(response);
       } catch (error) {
-        console.error('Error fetching avatars:', error);
         setError('Failed to load avatars');
       } finally {
         setLoadingAvatars(false);
@@ -121,7 +120,6 @@ export function CreateShortDialog({ isOpen, onClose, onCreated, defaultAudioUrl 
           }
 
           const statusData = await statusResponse.json();
-          console.log('Status check response:', statusData);
 
           // Update progress based on status
           setProgress(statusData.status || 0);
@@ -134,7 +132,6 @@ export function CreateShortDialog({ isOpen, onClose, onCreated, defaultAudioUrl 
 
           return false;
         } catch (error) {
-          console.error('Error checking status:', error);
           return false;
         }
       };

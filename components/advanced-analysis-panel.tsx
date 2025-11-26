@@ -123,7 +123,6 @@ export function AdvancedAnalysisPanel({
         description: `${type} analysis completed successfully`
       });
     } catch (error) {
-      console.error('Analysis error:', error);
       
       toast({
         title: "Analysis failed",

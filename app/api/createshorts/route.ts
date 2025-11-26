@@ -24,7 +24,6 @@ export async function POST(request: Request) {
       callbackData
     };
 
-    console.log('Sending request to API:', requestBody);
 
     const response = await fetch(`${API_URL}/video/CreateShorts`, {
       method: 'POST',
@@ -36,7 +35,6 @@ export async function POST(request: Request) {
     });
 
     const data = await response.json();
-    console.log('API Response:', data);
 
     if (!response.ok) {
       throw new Error(data.error || 'Failed to create short');
@@ -49,7 +47,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ request_id: data.requestId });
 
   } catch (error) {
-    console.error('Error creating short:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to create short' },
       { status: 500 }

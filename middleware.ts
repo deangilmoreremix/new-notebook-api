@@ -11,6 +11,19 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/notebook', request.url));
   }
 
+  // Basic API key authentication for API routes
+  if (request.nextUrl.pathname.startsWith('/api/')) {
+    const authHeader = request.headers.get('authorization');
+    const apiKey = process.env.API_KEY || process.env.NEXT_PUBLIC_API_KEY;
+
+    if (!authHeader || !authHeader.startsWith('Bearer ') || authHeader.split(' ')[1] !== apiKey) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+  }
+
   return NextResponse.next({
     request: {
       headers

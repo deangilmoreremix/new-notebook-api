@@ -46,7 +46,6 @@ export function useApiFeatures() {
 
           result = await api.pollStatus(response.request_id);
         } catch (error) {
-          console.warn("AutoContent API failed, trying Gemini:", error);
 
           // Try Gemini
           const combinedText = request.resources
@@ -95,7 +94,6 @@ export function useApiFeatures() {
               break;
             case "summary":
               result = await gemini.generateSummary(combinedText);
-              console.log(result, "result============>>> generateSummary");
               break;
             default:
               throw new Error(

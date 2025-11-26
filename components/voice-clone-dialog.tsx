@@ -100,7 +100,6 @@ export function VoiceCloneDialog({
         }
       }, 30000);
     } catch (error) {
-      console.error('Failed to start recording:', error);
       toast({
         title: "Recording failed",
         description: "Could not access microphone",

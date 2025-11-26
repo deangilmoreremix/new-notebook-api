@@ -177,10 +177,8 @@ export function NotebookInterface() {
       };
 
       const result = await createContent(requestData);
-      console.log("Generated result:", result);
 
       if (result && result.text) {
-        console.log("Setting generated summary:", result.text);
         setgeneratedSummary({
           content: result.text,
           summary: result.text,
@@ -219,7 +217,6 @@ export function NotebookInterface() {
   };
 
   const handleModifyPodcast = async (options: { voice1: string; voice2: string }) => {
-    console.log('handleModifyPodcast');
 
     if (!audioUrl) {
       toast({
@@ -240,17 +237,14 @@ export function NotebookInterface() {
         callbackData: 'optional-callback-data'
       });
 
-      console.log('API Response:', result);
 
       if (result.finalResult?.audio_url) {
-        console.log(`Final modified audio available at: ${result.finalResult.audio_url}`);
         setModifiedAudioUrl(result.finalResult.audio_url);
         setShowAudioDialog(true);
       }
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to modify podcast';
-      console.error('Error modifying podcast:', errorMessage);
       toast({
         title: "Podcast modification failed",
         description: errorMessage,
@@ -277,7 +271,6 @@ export function NotebookInterface() {
       const selectedSourceContents = sources
         .filter(s => selectedSources.includes(s.id))
         .map(s => s.content);
-      console.log("Calleddddd")
       const result = await autoContentApi.createDeepDiveContent(
         selectedSourceContents,
         "Generate audio overview",
@@ -321,20 +314,17 @@ export function NotebookInterface() {
         }
       );
 
-      console.log("API Response:", result); // Debugging the response structure
 
       if (result.finalResult?.audio_url) {
         setAudioUrl(result.finalResult.audio_url);
         setShowAudioDialog(true);
         setProgress(result?.finalResult.status)
       } else {
-        console.error("Audio URL is missing. Full response:", result);
         throw new Error("No audio URL returned");
       }
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to generate audio overview';
-      console.error('Failed to generate audio:', errorMessage);
       toast({
         title: "Audio generation failed",
         description: errorMessage,
@@ -417,7 +407,6 @@ export function NotebookInterface() {
         }
       }
     } catch (error) {
-      console.error('Content generation error:', error);
       toast({
         title: "Generation failed",
         description: error instanceof Error ? error.message : "Failed to generate content",
@@ -447,7 +436,6 @@ export function NotebookInterface() {
         setNotes((prevNotes) => [note, ...prevNotes]);
         break;
       default:
-        console.warn('Unhandled content type:', type);
     }
   };
 
@@ -1143,7 +1131,6 @@ export function NotebookInterface() {
                 }
               }
             } catch (error) {
-              console.error('Briefing document generation error:', error);
               toast({
                 title: "Generation failed",
                 description: error instanceof Error ? error.message : "Failed to generate briefing document",
@@ -1205,7 +1192,6 @@ export function NotebookInterface() {
                 }
               }
             } catch (error) {
-              console.error('Study guide generation error:', error);
               toast({
                 title: "Generation failed",
                 description: error instanceof Error ? error.message : "Failed to generate study guide",

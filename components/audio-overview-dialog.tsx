@@ -120,7 +120,6 @@ export function AudioOverviewDialog({
           }
         }
       } catch (error) {
-        console.error('Failed to load voices:', error);
         // Show warning but don't block the dialog
         toast({
           title: "Using default voices",

@@ -1,9 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { API_URL, API_KEY } from '@/lib/constants';
+import { z } from 'zod';
+import logger from '@/lib/logger';
 
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-async function checkStatusWithPolling(requestId) {
+const contentRequestSchema = z.object({
+  text: z.string().min(1).max(10000),
+  outputType: z.enum(['text', 'audio', 'deep_dive']),
+  resources: z.array(z.string()).optional(),
+  customization: z.object({
+    host1: z.string().optional(),
+    host2: z.string().optional(),
+    format: z.string().optional(),
+  }).optional(),
+});
+
+async function checkStatusWithPolling(requestId: string) {
   const startTime = Date.now();
   while (true) {
     try {
@@ -15,46 +28,42 @@ async function checkStatusWithPolling(requestId) {
         }
       });
       const data = await response.json();
-      console.log("Polling Status:", data);
       
       // If status is complete, return the data
       if (data.status === 100) {
-        console.log("✅ Request is complete:", data);
         return data;
       }
       
       // Check if more than 25 minutes have elapsed
       if (Date.now() - startTime > 1500000) {
-        console.log("⏳ Request pending for more than 25 minutes.");
         return {
           status: data.status,
           message: "Your request has been pending for over 25 minutes. Please check back later."
         };
       }
     } catch (error) {
-      console.error("Error checking status:", error);
+      logger.error('Error checking status:', { error, requestId });
     }
     await delay(5000); // Wait for 5 seconds before next check
   }
 }
 
-export async function POST(request) {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    console.log("Received body:", body);
-    console.log(API_KEY, "key");
+    const validatedBody = contentRequestSchema.parse(body);
 
-    const outputType = body.outputType === 'deep_dive' ? 'audio' : 'text';
+    const outputType = validatedBody.outputType === 'deep_dive' ? 'audio' : 'text';
 
-    const requestBody = {
-      text: body.text,
+    const requestBody: any = {
+      text: validatedBody.text,
       outputType,
-      resources: body.resources || [],
+      resources: validatedBody.resources || [],
       includeCitations: outputType !== 'audio',
     };
 
-    if (outputType !== 'audio' && body.customization) {
-      requestBody.customization = body.customization;
+    if (outputType !== 'audio' && validatedBody.customization) {
+      requestBody.customization = validatedBody.customization;
     }
 
     const response = await fetch(`${API_URL}/content/create`, {
@@ -67,7 +76,6 @@ export async function POST(request) {
     });
 
     let data = await response.json();
-    console.log("API Response Data:", data);
     
     if (!data.request_id) {
       return NextResponse.json({ errorMessage: "No request ID received." }, { status: 400 });
@@ -83,7 +91,7 @@ export async function POST(request) {
     }, { status: 200 });
 
   } catch (error) {
-    console.error('Error fetching sources:', error);
+    logger.error('Content creation error:', { error });
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }

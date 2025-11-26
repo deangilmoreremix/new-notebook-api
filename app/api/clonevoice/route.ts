@@ -65,7 +65,6 @@ export async function POST(req: Request) {
       try {
         await fs.unlink(filePath);
       } catch (cleanupError) {
-        console.error('Failed to clean up file:', cleanupError);
       }
       throw new Error(`Voice cloning failed: ${errorData}`);
     }
@@ -73,7 +72,6 @@ export async function POST(req: Request) {
     const result = await response.json();
     return NextResponse.json(result);
   } catch (error) {
-    console.error('Voice cloning error:', {
       error: error instanceof Error ? error.message : 'Unknown error',
       timestamp: new Date().toISOString(),
     });

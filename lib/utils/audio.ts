@@ -23,11 +23,9 @@ export const audioPreviewUtils = {
     
     // Add loading state handlers
     audio.addEventListener('loadstart', () => {
-      console.log('Loading audio preview...');
     });
 
     audio.addEventListener('error', (e) => {
-      console.error('Audio preview error:', e);
       throw new Error('Could not play voice preview');
     });
 
@@ -48,7 +46,6 @@ export const audioPreviewUtils = {
       await audio.play();
       currentPreview = audio;
     } catch (error) {
-      console.error('Failed to play audio preview:', error);
       throw new Error('Could not play voice preview');
     }
   },

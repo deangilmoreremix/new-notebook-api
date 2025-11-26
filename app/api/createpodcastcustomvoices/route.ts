@@ -21,7 +21,6 @@ async function checkStatus(requestId: string) {
         return { status: data.status, message: 'Request pending for over 3 minutes' };
       }
     } catch (e) {
-      console.error('Polling error', e);
     }
     await delay(5000);
   }
@@ -47,7 +46,6 @@ export async function POST(req: Request) {
     const finalResult = await checkStatus(data.request_id);
     return NextResponse.json({ status: 'success', initialResponse: data, finalResult }, { status: 200 });
   } catch (error) {
-    console.error('Error creating podcast:', error);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }

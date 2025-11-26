@@ -27,7 +27,6 @@ export const storageService = {
     try {
       localStorage.setItem(STORAGE_KEYS.SOURCES, JSON.stringify(sources));
     } catch (error) {
-      console.error('Failed to save sources:', error);
     }
   },
 
@@ -37,7 +36,6 @@ export const storageService = {
       const stored = localStorage.getItem(STORAGE_KEYS.SOURCES);
       return stored ? JSON.parse(stored) : [];
     } catch (error) {
-      console.error('Failed to load sources:', error);
       return [];
     }
   },
@@ -52,7 +50,6 @@ export const storageService = {
       this.saveSources(updatedSources);
       return updatedSources;
     } catch (error) {
-      console.error('Failed to update source selection:', error);
       return [];
     }
   },
@@ -65,7 +62,6 @@ export const storageService = {
       this.saveSources(updatedSources);
       return updatedSources;
     } catch (error) {
-      console.error('Failed to select all sources:', error);
       return [];
     }
   },
@@ -78,7 +74,6 @@ export const storageService = {
       this.saveSources(updatedSources);
       return updatedSources;
     } catch (error) {
-      console.error('Failed to delete source:', error);
       return [];
     }
   },
@@ -89,7 +84,6 @@ export const storageService = {
       const key = `${STORAGE_KEYS.METADATA}_${sourceId}`;
       localStorage.setItem(key, JSON.stringify(metadata));
     } catch (error) {
-      console.error('Failed to save source metadata:', error);
     }
   },
 
@@ -100,7 +94,6 @@ export const storageService = {
       const stored = localStorage.getItem(key);
       return stored ? JSON.parse(stored) : null;
     } catch (error) {
-      console.error('Failed to load source metadata:', error);
       return null;
     }
   },
@@ -112,7 +105,6 @@ export const storageService = {
         localStorage.removeItem(key);
       });
     } catch (error) {
-      console.error('Failed to clear storage:', error);
     }
   }
 };
